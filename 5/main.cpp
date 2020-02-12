@@ -14,7 +14,7 @@ void ejercicio2() {
     p.imprimeVertices();
 }
 
-void test(const bool reserve, const int n, const int m) {
+vector<PoligonoIrreg> test(const bool reserve, const int n, const int m) {
     vector<PoligonoIrreg> pols;
     if (reserve) pols.reserve(n);
     srand(time(NULL));
@@ -28,11 +28,12 @@ void test(const bool reserve, const int n, const int m) {
         if (reserve) pols[i] = p;
         else pols.push_back(p);
     }
+    return pols;
 }
 
 int main(int argc, char const *argv[]) {
     int pols_count = 3, coordinates_count = 3;
-    bool reserve = false;
+    bool reserve = true;
     if (argc == 4) {
         pols_count = atoi(argv[1]);
         coordinates_count = atoi(argv[2]);
@@ -40,6 +41,7 @@ int main(int argc, char const *argv[]) {
     } else {
         cout << "[%s] [N_POLIGONE] [N_COORDINATE] [RESERVE]" << endl;
     }
-    test(reserve, pols_count, coordinates_count);
+    auto irreg_pols = test(reserve, pols_count, coordinates_count);
+    cout << irreg_pols.size() << endl;
     return 0;
 }

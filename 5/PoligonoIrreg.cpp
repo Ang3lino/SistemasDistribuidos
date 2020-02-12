@@ -6,6 +6,8 @@ class PoligonoIrreg {
 private:
     vector<Coordenada> coordenadas;
 public:
+    static int count;
+
     PoligonoIrreg() { }
 
     PoligonoIrreg(const int n) {
