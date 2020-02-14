@@ -12,6 +12,10 @@ ostream& operator << (ostream &out, const Coordenada &c) {
     return out;
 }
 
+double Coordenada::magnitude() {
+  return sqrt(x*x + y*y);
+}
+
 double Coordenada::obtenerX () {
   return x;
 }

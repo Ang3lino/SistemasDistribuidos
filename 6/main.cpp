@@ -21,8 +21,8 @@ int main(int argc, char const *argv[]) {
     for (auto it = coordinates.begin(); it < coordinates.end(); ++it) {
         cout << *it;
     }
-    sort(coordinates.begin(), coordinates.end(), []( Coordenada &l, Coordenada &r) {
-            return (l.obtenerX() < r.obtenerX()); 
+    sort(coordinates.begin(), coordinates.end(), [](Coordenada &l, Coordenada &r) {
+            return l.magnitude() < r.magnitude();
         }
     );
     cout << "Ordenado " << endl;

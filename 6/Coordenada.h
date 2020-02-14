@@ -3,16 +3,17 @@
 #define COORDENADA_H
 
 #include <iostream>
+#include <math.h>
+
 using namespace std;
 
-class Coordenada {
-private:
-    double x;
-    double y;
-public:
+struct Coordenada {
+    double x, y;
+
     Coordenada (double = 0, double = 0);
     double obtenerX ();
     double obtenerY ();
+    double magnitude();
 
     friend ostream & operator << (ostream &, const Coordenada &);
 };
