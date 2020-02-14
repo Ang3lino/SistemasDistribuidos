@@ -1,6 +1,9 @@
 #include "Coordenada.h"
 
+int Coordenada::count = 0;
+
 Coordenada::Coordenada (double xx, double yy):x (xx), y (yy) {
+  count++;
 }
 
 ostream& operator << (ostream &out, const Coordenada &c) {

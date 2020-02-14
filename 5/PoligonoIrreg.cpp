@@ -2,20 +2,21 @@
 #include "Coordenada.h"
 #include <vector>    
 
-class PoligonoIrreg {
-private:
+struct PoligonoIrreg {
     vector<Coordenada> coordenadas;
-public:
-    static int count;
 
     PoligonoIrreg() { }
 
-    PoligonoIrreg(const int n) {
+    PoligonoIrreg(const int n) { 
         coordenadas.reserve(n);
     }
 
     void reserve(const int n) {
         coordenadas.reserve(n);
+    }
+
+    void resize(const int n) {
+        coordenadas.resize(n);
     }
 
     void anadeVertice(Coordenada &c) {

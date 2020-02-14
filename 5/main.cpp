@@ -14,7 +14,19 @@ void ejercicio2() {
     p.imprimeVertices();
 }
 
-vector<PoligonoIrreg> test(const bool reserve, const int n, const int m) {
+int main(int argc, char const *argv[]) {
+    int n = 2, m = 3;
+    bool reserve = true;
+
+    if (argc == 4) {
+        n = atoi(argv[1]);
+        m = atoi(argv[2]);
+        if (argv[3] == "n") reserve = false;
+    } else {
+        cout << "[%s] [N_POLIGONE] [N_COORDINATE] [RESERVE]" << endl;
+    }
+
+
     vector<PoligonoIrreg> pols;
     if (reserve) pols.reserve(n);
     srand(time(NULL));
@@ -28,20 +40,13 @@ vector<PoligonoIrreg> test(const bool reserve, const int n, const int m) {
         if (reserve) pols[i] = p;
         else pols.push_back(p);
     }
-    return pols;
-}
 
-int main(int argc, char const *argv[]) {
-    int pols_count = 3, coordinates_count = 3;
-    bool reserve = true;
-    if (argc == 4) {
-        pols_count = atoi(argv[1]);
-        coordinates_count = atoi(argv[2]);
-        if (argv[3] == "n") reserve = false;
-    } else {
-        cout << "[%s] [N_POLIGONE] [N_COORDINATE] [RESERVE]" << endl;
+    for (auto p: pols) {
+        p.imprimeVertices();
     }
-    auto irreg_pols = test(reserve, pols_count, coordinates_count);
-    cout << irreg_pols.size() << endl;
+
+    cout << pols.size() << endl;
+    cout << "Numero de vertices totales: " << Coordenada::get_count() << endl;
+
     return 0;
 }
