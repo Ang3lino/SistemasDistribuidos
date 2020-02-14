@@ -8,7 +8,7 @@ ostream& operator << (ostream &out, const Coordenada &c) {
     out << c.x;
     out << ", ";
     out << c.y;
-    out << ")\n";
+    out << ")";
     return out;
 }
 

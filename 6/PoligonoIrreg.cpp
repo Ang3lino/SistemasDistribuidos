@@ -32,8 +32,8 @@ struct PoligonoIrreg {
     }
 
     void imprimeVertices() {
-        for (auto it = coordenadas.begin(); it < coordenadas.end(); ++it) 
-            cout << *it;
-            // cout << c.obtenerX() << ", " << c.obtenerY() << endl;
+        for (auto it = coordenadas.begin(); it < coordenadas.end(); ++it) {
+            cout << "Coordenada: " << *it << "  Magnitud: " << it->magnitude() << endl;
+        }
     }
 };
