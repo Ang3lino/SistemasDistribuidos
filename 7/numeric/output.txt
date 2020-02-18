@@ -1,0 +1,19 @@
+C 
+real	0m11.207s
+user	0m11.207s
+sys	0m0.000s
+
+C++
+real	0m11.751s
+user	0m11.728s
+sys	0m0.016s
+
+Java 
+real	0m14.477s
+user	0m14.484s
+sys	0m0.033s
+
+Python
+real	1m37.518s
+user	1m37.431s
+sys	0m0.065s
