@@ -23,6 +23,16 @@ struct Cadenota {
         str = (char *) malloc(capacity * sizeof(char));
         strcpy(str, source);
     }
+     
+    Cadenota(int n) {
+        size = n;
+        capacity = 2 * size;
+        str = (char *) malloc(capacity * sizeof(char));
+    }
+
+    void append(char *extra) {
+        strcat(str, extra);
+    }
 
     Cadenota operator+ (const Cadenota &other) {
         size += other.size;
