@@ -13,7 +13,7 @@
 
 using namespace std;
 
-int count = 0;
+atomic<int> count(0);
 
 void increment(const int n) {
     // count += n;
@@ -39,3 +39,16 @@ int main() {
     cout << endl;
     exit(0);
 }
+
+/*
+type f(atomic<type> &arg) {
+    // ...
+}
+
+int main() {
+    atomic<type> atomic_var;
+    thread t(f, ref(atomic_var));
+    // ... 
+    return 0;
+}
+*/
