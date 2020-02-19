@@ -9,6 +9,7 @@ private:
     std::mutex mutex_;
     std::condition_variable condition_;
     unsigned long count_;
+        
 public:
     Semaforo(unsigned long = 0);
     void post();
