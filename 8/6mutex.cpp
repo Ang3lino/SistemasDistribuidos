@@ -12,18 +12,24 @@ int count = 0;
 mutex m;
 
 void increment(const int n) {
-    // count += n;
-    m.lock();
-    for (int i = 0; i < n; ++i) ++count;
-    m.unlock();
-    sleep(1);
+    // m.lock();
+    // for (int i = 0; i < n; ++i) {
+    //     ++count;
+    // } 
+    // m.unlock();
+    for (int i = 0; i < n; ++i) {
+        m.lock();
+        ++count;
+        m.unlock();
+    } 
 }
 
 void decrement(const int n) {
-    m.lock();
-    for (int i = 0; i < n; ++i) --count;
-    m.unlock(); 
-    sleep(1);
+    for (int i = 0; i < n; ++i) {
+        m.lock();
+        --count;
+        m.unlock();
+    } 
 }
 
 int main() {

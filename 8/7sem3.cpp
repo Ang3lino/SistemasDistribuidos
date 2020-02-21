@@ -18,7 +18,6 @@ void funcion1() {
         sem1.wait();
         printf("Soy el hilo 1, y esta es la impresion %d\n", global-- );
         sem2.post();
-        sem3.post() ;
     }
 }
 
@@ -26,7 +25,6 @@ void funcion2() {
     while(global > 0){
         sem2.wait();
         printf("Soy el hilo 2, y esta es la impresion %d\n", global-- );
-        sem1.post();
         sem3.post() ;
     }
 }
@@ -36,7 +34,6 @@ void funcion3() {
         sem3.wait();
         printf("Soy el hilo 3, y esta es la impresion %d\n", global-- );
         sem1.post();
-        sem2.post() ;
     }
 }
 

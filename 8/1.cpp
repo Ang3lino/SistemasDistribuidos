@@ -8,7 +8,7 @@ using namespace std;
 
 void funcion(int valor) {
     // cout<<"Hilo " << this_thread::get_id() << " Valor recibido: " << valor << endl;
-    printf("Hilo %ld Valor recibidl: %d", this_thread::get_id(), valor);
+    printf("Hilo %ld Valor recibidl: %d\n", this_thread::get_id(), valor);
     sleep(2);
 }
 

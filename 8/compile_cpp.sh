@@ -13,4 +13,6 @@ if [ $? -eq 0 -a -f a.out ]; then
     ./a.out
 fi
 
+cat $src
+
 exit 0
