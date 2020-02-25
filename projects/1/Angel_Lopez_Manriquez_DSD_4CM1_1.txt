@@ -1,0 +1,321 @@
+// 1.-Se desea calcular la raíz cuadrada de un número entero n utilizando al algoritmo babilónico.
+// Investigue en Internet el algoritmo y prográmelo, haciendo n del tipo double y el resultado con
+// cuatro decimales.
+#include <iostream>
+
+using namespace std;
+
+
+double sqrt_babylonian(double n) {
+	double x0 = 0, x1 = 0.5;
+	while(abs(x0 - x1) >= 1e-6) {
+		x0 = x1;
+		x1 = 0.5 * (x0 + n / x0);
+	}
+	return x1;
+}
+
+int main() {
+    int n = 100;
+    cout << sqrt_babylonian(n) << endl;
+    return 0;
+}
+********************************************************************************************************
+// 2.- Escriba un programa que imprima la altura de un edificio, si se conoce el tiempo que tardó una
+// pelota de tenis desde que se dejó caer en la parte más alta del edificio y hasta llegar al piso.
+#include <iostream>
+#define GRAVITY 9.807
+using namespace std;
+
+
+inline double height(double t) {
+	return 0.5 * GRAVITY * t * t;
+}
+
+int main() {
+    double t;
+    cout << "tiempo: ";
+    cin >> t;
+    cout << "altura: " << height(t) << endl;
+    return 0;
+}
+********************************************************************************************************
+// 3.- Escriba un programa que reciba del usuario un valor entero de tiempo en segundos, y que
+// imprima su equivalente en horas, minutos y segundos. Por ejemplo si el usuario introduce 50381,
+// entonces el programa debe imprimir: 13 horas, 59 minutos y 41 segundos.
+#include <iostream>
+using namespace std;
+
+
+int main( ) {
+    long time = 0;
+    cin >> time;
+    const int hours = time / 3600 % 60;
+    const int minutes = time / 60 % 60;
+    const int seconds = time % 60;
+    cout << "Time: " << hours << ":" << minutes << ":" << seconds << endl;
+    return 0;
+}
+********************************************************************************************************
+// 4.- Defina una clase Temperatura que almacene de manera interna un valor de temperatura en
+// grados Kelvin. También elabore las funciones setTempKelvin, setTempFahrenheit y setTempCelsius que
+// tomen la temperatura en la escala especificada por el usuario y la almacenen en grados Kelvin.
+// Asimismo escriba las funciones que impriman el valor almacenado en la clase y en los grados
+// Centigrados, Kelvin o Fahrenheit, según lo solicite el usuario. Escriba una función principal para
+// probar la clase.
+#include <iostream>
+
+using namespace std;
+
+
+class Temperatura {
+    double kelvin;
+
+public:
+    inline void setTempKelvin(double kelvin_) { kelvin = kelvin_; } 
+    inline void setTempFahrenheit(double fahrenheit) { kelvin = (fahrenheit - 32) / 1.8 + 273.15; }
+    inline void setTempCelsius(double celsius) { kelvin = celsius + 273.15; }
+
+    inline double getTempKelvin() { return kelvin; }
+    inline double getTempFahrenheit() { return 1.8 * (kelvin - 273.15) + 32; }
+    inline double getTempCelsius() { return kelvin - 273.15; }
+
+    Temperatura(): kelvin(0) {  }
+};
+
+// ------------------------------------------------------------------------------------------------
+int main(int argc, const char *argv[])
+{
+    Temperatura temperatura;
+    temperatura.setTempKelvin(100);
+    cout << temperatura.getTempKelvin() << endl;
+    temperatura.setTempFahrenheit(100);
+    cout << temperatura.getTempFahrenheit() << endl;
+    temperatura.setTempCelsius(100);
+    cout << temperatura.getTempCelsius() << endl;
+    return 0;
+}
+********************************************************************************************************
+// 5.- Defina una clase llamada Fraccion , la cual almacena un numerador y un denominador enteros.
+// Debe incluir una función para que el usuario pueda inicializar a ambos, así como una función que
+// devuelva el resultado de la división entre el numerador y el denominador como un double. Por último
+// debe existir una función que devuelva a la fracción en su mínima expresión. Por ejemplo la fracción
+// 18/15 deberá imprimirse como 6/5. Pruebe la clase con el código mínimo en el programa principal.
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+class Fraccion {
+private:
+    long num, den;
+
+    void simplify() {
+        const long gcd = __gcd(num, den);
+        num /= gcd;
+        den /= gcd;
+    }
+
+public:
+    void update(long num, long den) {
+        this->num = num;
+        this->den = den;
+        simplify();
+    }
+
+    Fraccion(long num_, long den_): num(num_), den(den_) {  
+        simplify();
+    }
+
+    double as_double() { return (double) num / den; }
+
+    friend ostream& operator<<(ostream& os, const Fraccion&);
+};
+
+ostream& operator<<(ostream& os, const Fraccion &f) {
+    os << f.num << "/" << f.den << endl;
+    return os;
+}
+
+// ----------------------------------------------------------
+int main(int argc, const char *argv[]) {
+    Fraccion f(10000, 5000);
+    cout << f << endl;
+    f.update(18, 15);
+    cout << f << endl;
+    return 0;
+}
+********************************************************************************************************
+// 6.- Utilice composición para elaborar una clase Ortoedro la cual se compone de 6 objetos
+// Rectangulo, y donde cada objeto Coordenada es de tres dimensiones. Se debe disponer de los
+// metodos: obtieneVertices, obtieneArea y obtieneVolumen para el área de la superficie y el volumen.
+// La inicialización del objeto se debe dar mediante las 2 coordenadas de los vértices opuestos donde
+// el primer vértice está cerca del origen y el segundo lejos, dentro ambos del primer octante.
+
+#include <set>
+#include <cmath>
+#include <vector>
+#include <iostream>
+
+
+using namespace std;
+
+class Coordenada {
+private:
+    double x, y, z;
+public:
+    Coordenada(double xx=0, double yy=0, double zz=0): x(xx), y(yy), z(zz) {}
+
+    inline double obtenerX() { return x; }
+    inline double obtenerY() { return y; }
+    inline double obtenerZ() { return z; }
+};
+// --------------------------------------------------------------------------------------------------
+
+class Rectangulo {  
+private:
+    Coordenada cercaOrigen, lejosOrigen;
+
+public:
+    Rectangulo() {}
+
+    Rectangulo(Coordenada co, Coordenada lo) : cercaOrigen(co), lejosOrigen(lo) {}
+
+    void imprimeEsq() { 
+        cout << "Para la esquina superior izquierda.\n";
+
+        cout << "(" << cercaOrigen.obtenerX() << ", ";
+        cout << cercaOrigen.obtenerY() << ", ";
+        cout << cercaOrigen.obtenerZ() << ")" << endl;
+
+        cout << "(" << lejosOrigen.obtenerX() << ", ";
+        cout << lejosOrigen.obtenerY() << ", ";
+        cout << lejosOrigen.obtenerZ() << ")" << endl;
+    }
+
+    inline vector<Coordenada> esquinas() { return {cercaOrigen, lejosOrigen}; }
+
+    double obtieneArea() { 
+        const double a = abs(lejosOrigen.obtenerX() - cercaOrigen.obtenerX());
+        const double b = abs(lejosOrigen.obtenerY() - cercaOrigen.obtenerY());
+        const double c = abs(lejosOrigen.obtenerZ() - cercaOrigen.obtenerZ());
+        return a*b + a*c + b*c;
+    }
+};
+
+
+// ----------------------------------------------------------------------------------------------------
+class Ortoedro {
+private:
+    vector<Rectangulo> rectangulos;
+
+public:
+    Ortoedro();
+
+    Ortoedro(Coordenada co, Coordenada lo) {
+        rectangulos.resize(6);
+        const double coX = co.obtenerX();
+        const double coY = co.obtenerY();
+        const double coZ = co.obtenerZ();
+        const double loX = lo.obtenerX();
+        const double loY = lo.obtenerY();
+        const double loZ = lo.obtenerZ();
+        rectangulos[0] = Rectangulo(Coordenada(coX, coY, coZ), Coordenada(loX, coY, loZ)); // frente
+        rectangulos[1] = Rectangulo(Coordenada(coX, loY, coZ), Coordenada(loX, loY, loZ)); // derecha
+        rectangulos[2] = Rectangulo(Coordenada(coX, coY, coZ), Coordenada(coX, loY, loZ)); // atras
+        rectangulos[3] = Rectangulo(Coordenada(loX, coY, coZ), Coordenada(loX, loY, loZ)); // izquierda
+        rectangulos[4] = Rectangulo(Coordenada(coX, coY, loZ), Coordenada(loX, loY, loZ)); // arriba
+        rectangulos[5] = Rectangulo(Coordenada(coX, coY, coZ), Coordenada(loX, loY, coZ)); // abajo
+    }
+
+    vector<Coordenada> obtieneVertices() {
+        auto cmp = [](Coordenada a, Coordenada b) {
+            if (a.obtenerX() < b.obtenerX()) return true;
+            if (a.obtenerX() > b.obtenerX()) return false;
+            if (a.obtenerY() < b.obtenerY()) return true;
+            if (a.obtenerY() > b.obtenerY()) return false;
+            if (a.obtenerZ() < b.obtenerZ()) return true;
+            return false;
+        };
+        set<Coordenada, decltype(cmp)> s(cmp);
+        for (auto &rec : rectangulos) {
+            for (auto &esq : rec.esquinas()) {
+              s.insert(esq);
+            }
+        }
+        vector<Coordenada> ans;
+        ans.insert(ans.end(), s.begin(), s.end());
+        return ans;
+    }
+
+    double obtieneArea() {
+        double ans = 0;
+        for (auto &rec : rectangulos) {
+            ans += rec.obtieneArea();
+        }
+        return ans;
+    }
+
+    double obtieneVolumen() {
+        double bottomArea = rectangulos[5].obtieneArea();
+        vector<Coordenada> esquinas = rectangulos[0].esquinas();
+        return bottomArea * (abs(esquinas[1].obtenerZ() - esquinas[0].obtenerZ()));
+    }
+};
+
+
+// ----------------------------------------------------------------------------------------------------
+int main() {
+    double a, b, c, d, e, f;
+    cout << "Tres coordenadas de la esquina cerca del origen: ";
+    cin >> a >> b >> c;
+    cout << "Tres coordenadas de la esquina lejos del origen: ";
+    cin >> d >> e >> f;
+    Ortoedro o(Coordenada(a, b, c), Coordenada(d, e, f));
+    cout << "Vertices:" << endl;
+    for (Coordenada v : o.obtieneVertices()) {
+        cout << "(" << v.obtenerX() << ", " << v.obtenerY() << ", " << v.obtenerZ() << ")" << endl;
+    }
+    cout << "Area: " << o.obtieneArea() << endl;
+    cout << "Volumen: " << o.obtieneVolumen() << endl;
+    return 0;
+}
+
+********************************************************************************************************
+// 7.-Elabore un programa para encontrar los números primos menores al valor N que introduzca el
+// usuario, mediante el algoritmo de la Criba de Eratóstenes:
+// http://es.wikipedia.org/wiki/Criba_de_Erat%C3%B3stenes
+// Use un template vector para almacenar objetos de una clase, cuyos miembros son los números
+// enteros y un dato tipo bool, para descartar al objeto en el caso de que no sea primo
+// (originalmente todos los elementos del vector tienen un valor true en este dato miembro).
+
+
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+
+void criba (vector <bool> &p) {
+	p[0] = p[1] = false;
+	for (int i = 2; i*i < p.size(); i++){
+		if (p[i] == false)
+			continue;
+		for (int j = 2 * i; j < p.size (); j += i)
+			p[j] = false;		
+	}
+
+}
+
+int main(int argc, const char *argv[])
+{
+    int n = 10000;
+    vector<bool> v_criba(n, true);
+    criba(v_criba);
+    for (int i = 2; i < v_criba.size(); ++i) {
+        if (v_criba[i]) cout << i << ", ";
+    }
+    cout << endl;
+    return 0;
+}
+********************************************************************************************************
