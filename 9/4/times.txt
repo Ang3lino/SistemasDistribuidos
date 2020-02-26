@@ -1,0 +1,63 @@
+1 dd
+    byte
+    real	0m12.676s
+    user	0m1.336s
+    sys	0m11.235s
+
+    2 token
+    real	0m3.567s
+    user	0m0.544s
+    sys	0m2.845s
+
+    3 bufsize
+    real	0m1.299s
+    user	0m0.290s
+    sys	0m0.017s
+
+2 ram RAM_COUNT = 400000000
+real	0m12.356s
+user	0m12.207s
+sys	0m0.148s
+
+3 cpu MAX = 105000000
+real	0m12.639s
+user	0m12.626s
+sys	0m0.012s
+
+4 --------------------------
+    1 dd dd
+    real	0m20.542s
+    user	0m3.259s
+    sys	0m36.750s
+
+    2 ram ram
+    real	3m36.871s
+    user	4m5.560s
+    sys	3m6.348s
+
+    3 cpu cpu
+    real	0m20.768s
+    user	0m40.952s
+    sys	0m0.012s
+
+    4 dd cpu
+    real	0m15.569s
+    user	0m15.613s
+    sys	0m13.797s
+
+    5 dd ram
+    real	0m30.439s
+    user	0m31.927s
+    sys	0m14.459s
+
+    6 cpu ram
+    real	0m42.918s
+    user	1m0.565s
+    sys	0m0.164s
+
+    7 cpu dd ram
+    real	0m32.057s
+    user	0m49.661s
+    sys	0m17.208s
+
+

@@ -1,0 +1,52 @@
+01 dd
+real	0m0.950s
+user	0m0.296s
+sys	0m0.008s
+
+02 cpu
+real	0m0.821s
+user	0m0.713s
+sys	0m0.108s
+
+03 ram
+real	0m0.810s
+user	0m0.810s
+sys	0m0.000s
+
+04
+
+1 dd dd
+real	0m1.727s
+user	0m0.670s
+sys	0m0.052s
+
+2 ram ram
+real	0m19.038s
+user	0m15.270s
+sys	0m18.876s
+
+
+3 cpu cpu
+real	0m1.214s
+user	0m1.723s
+sys	0m0.008s
+
+4 dd cpu
+real	0m1.022s
+user	0m1.119s
+sys	0m0.021s
+
+5 dd ram
+real	0m3.650s
+user	0m1.767s
+sys	0m0.137s
+
+6 cpu ram
+real	0m2.090s
+user	0m2.162s
+sys	0m0.140s
+
+7 cpu dd ram
+real	0m2.625s
+user	0m2.868s
+sys	0m0.200s

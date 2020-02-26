@@ -53,7 +53,7 @@ void file() {
     string sequence = random_sequence(word_count, word_length, separator);
     cout << "Sequencia generada\n";
     const char* filename = "output.txt";
-    const int buff_size = BUFSIZ;
+    const int buff_size = 1;
     create_random_file(sequence.c_str(), filename, buff_size);
     cout << endl;
 }
