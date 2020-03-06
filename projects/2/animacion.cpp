@@ -79,12 +79,21 @@ IrregularPolygon ellipse(const int start, const int end, const int samples,
         const Coordenada c = ip.coordinates[i];
         ip.coordinates.emplace_back(c.x, -c.y);
     }
-    cout << ip << endl;
     return ip;
 }
 
+void move(IrregularPolygon &ip, const int dx, const int dy) {
+    for (auto &c: ip.coordinates) {
+        c.x += dx;
+        c.y += dy;
+    }
+}
+
 void plot_ellipse(const int width, const int height, const char *title) {
-    auto ip = ellipse(-width + 10, width - 10, 10, width, height);
+    const int a = height >> 1, b = width >> 1;
+    cout << "a: " << a << "b: " << b << endl;
+    auto ip = ellipse(-190, 190, 40, a, b);
+    move(ip, 200, 50);
 
     gfx_open(width, height, title);
     gfx_color(0,200,100);
