@@ -91,9 +91,8 @@ void move(IrregularPolygon &ip, const int dx, const int dy) {
 
 void plot_ellipse(const int width, const int height, const char *title) {
     const int a = height >> 1, b = width >> 1;
-    cout << "a: " << a << "b: " << b << endl;
-    auto ip = ellipse(-190, 190, 40, a, b);
-    move(ip, 200, 50);
+    auto ip = ellipse(-340, 340, 40, b, a);
+    move(ip, 325, 175);
 
     gfx_open(width, height, title);
     gfx_color(0,200,100);
@@ -109,6 +108,9 @@ void plot_ellipse(const int width, const int height, const char *title) {
         cout << endl;
         // usleep(160000);  
     }
+
+    cout << "a: " << a << ", b: " << b << endl;
+
     Coordenada c1 = ip.coordinates[n - 2], c2 = ip.coordinates[n - 1];
     gfx_line(c1.x, c1.y, c2.x, c2.y);
     gfx_flush();
