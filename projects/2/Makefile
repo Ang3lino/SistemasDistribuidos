@@ -10,5 +10,6 @@ gfx.o: gfx.c
 animacion.o: animacion.cpp
 	g++ animacion.cpp -c 
 clear:
-	rm *\.o *\.gch a.out 
+	rm *\.o 
+	rm a.out 
 

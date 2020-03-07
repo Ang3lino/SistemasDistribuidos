@@ -32,7 +32,7 @@ void IrregularPolygon::set_vertex(const Coordenada &c, const int i) {
 ostream & operator << (ostream &out, IrregularPolygon &ip) {
     unsigned i = 0;
     for (auto c: ip.coordinates) {
-        cout << "v_" << i << " = " << c << " |v_i| = " << c.magnitude() << endl;
+        out << "v_" << i << " = " << c << " |v_i| = " << c.magnitude() << endl;
         ++i;
     }
     return out;
