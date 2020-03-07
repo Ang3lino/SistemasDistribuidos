@@ -16,8 +16,12 @@ struct Ellipse: IrregularPolygon {
     int h, k;
 
     Ellipse(const int, const int);
+    Ellipse(const int, const int, const int, const int);
 
     void move(const int, const int);
+    void set_contour(const int);
+    void rotate(const double);
+    void scale(const double);
 
     friend ostream & operator << (ostream &, IrregularPolygon &);
 };
