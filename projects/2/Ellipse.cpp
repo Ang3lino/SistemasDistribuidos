@@ -37,6 +37,12 @@ void Ellipse::move(const int dx, const int dy) {
 Ellipse::Ellipse(const int a_, const int b_): a(a_), b(b_ ) {
     h = 0;
     k = 0;
+    x = 0;
+    y = 0;
+    omega = 0;
+    rgb[0] = 0;
+    rgb[1] = 255;
+rgb[2] = 0;
 }
 
 Ellipse::Ellipse(const int a_, const int b_, const int h_, const int k_): 
@@ -59,13 +65,13 @@ void Ellipse::set_contour(const int samples) {
     }
 }
 
-ostream & operator << (ostream &out, Ellipse &ellipse) {
-    out << "(h, k) = " << "( " << ellipse.h << ", " << ellipse.k << ")" << endl;
-    out << "a = " << ellipse.a << endl;
-    out << "b = " << ellipse.b << endl;
-    for (auto &c: ellipse.coordinates) out << c << endl;
-    return out;
-}
+// ostream & operator << (ostream &out, Ellipse &ellipse) {
+//     out << "(h, k) = " << "( " << ellipse.h << ", " << ellipse.k << ")" << endl;
+//     out << "a = " << ellipse.a << endl;
+//     out << "b = " << ellipse.b << endl;
+//     for (auto &c: ellipse.coordinates) out << c << endl;
+//     return out;
+// }
 
 void Ellipse::rotate(const double theta) {
     for (auto &c: coordinates) {
