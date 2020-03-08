@@ -11,6 +11,7 @@
 
 using namespace std;
 
+// We'll draw an asteroid by using an Ellipse
 struct Ellipse: IrregularPolygon {
     int a, b;  // axis, a is supposed to be the big one
     int h, k;  // the center of the ellipse

@@ -1,0 +1,391 @@
+// Coordenada.h  ------------------------------------------------------------------------------
+
+#ifndef COORDENADA_H
+#define COORDENADA_H
+
+#include <iostream>
+#include <cmath>
+
+using namespace std;
+
+struct Coordenada {
+    double x, y;
+
+    Coordenada (double = 0, double = 0);
+    void rotate(const double);
+    void move(const double, const double);
+    double magnitude();
+
+    friend ostream & operator << (ostream &, const Coordenada &);
+};
+
+#endif
+// Coordenada.cpp  ------------------------------------------------------------------------------
+
+#include "Coordenada.h"
+
+
+Coordenada::Coordenada (double xx, double yy):x (xx), y (yy) {
+
+}
+
+ostream& operator << (ostream &out, const Coordenada &c) {
+    out << "(";
+    out << c.x;
+    out << ", ";
+    out << c.y;
+    out << ")";
+    return out;
+}
+
+double Coordenada::magnitude() {
+    return sqrt(x*x + y*y);
+}
+
+void Coordenada::move(const double dx, const double dy) {
+    x += dx;
+    y += dy;
+}
+
+//
+void Coordenada::rotate(const double theta) {
+    const double a = x, b = y;
+    const double c = cos(theta), s = sin(theta);
+    x = a*c - b*s;
+    y = a*s + b*c;
+}
+// IrregularPolygon.h  ------------------------------------------------------------------------------
+
+#ifndef IRREGULAR_POLYGON
+#define IRREGULAR_POLYGON
+
+#include <iterator>
+#include <iostream>
+#include <vector>    
+#include "Coordenada.h"
+
+struct IrregularPolygon {
+    vector<Coordenada> coordinates;
+    static int count;
+
+    IrregularPolygon();
+
+    IrregularPolygon(const int);
+
+    void reserve(const int);
+
+    void resize(const int);
+
+    void add_vertex(Coordenada);
+
+    void set_vertex(const Coordenada &, const int);
+
+    friend ostream & operator << (ostream &, IrregularPolygon &);
+};
+
+
+#endif
+// IrregularPolygon.cpp  ------------------------------------------------------------------------------
+
+#include "IrregularPolygon.h"
+
+int IrregularPolygon::count = 0;
+
+IrregularPolygon::IrregularPolygon() { 
+    IrregularPolygon::count = IrregularPolygon::count + 1;
+}
+
+IrregularPolygon::IrregularPolygon(const int n) {
+    coordinates.resize(n);
+    ++IrregularPolygon::count;
+}
+
+void IrregularPolygon::reserve(const int n) {
+    coordinates.reserve(n);
+    ++IrregularPolygon::count;
+}
+
+void IrregularPolygon::resize(const int n) {
+    coordinates.resize(n);
+}
+
+void IrregularPolygon::add_vertex(Coordenada c) {
+    coordinates.push_back(c);
+}
+
+void IrregularPolygon::set_vertex(const Coordenada &c, const int i) {
+    coordinates[i] = c;
+}
+
+ostream & operator << (ostream &out, IrregularPolygon &ip) {
+    unsigned i = 0;
+    for (auto c: ip.coordinates) {
+        out << "v_" << i << " = " << c << " |v_i| = " << c.magnitude() << endl;
+        ++i;
+    }
+    return out;
+}
+
+// Ellipse.h  ------------------------------------------------------------------------------
+
+#ifndef ELLIPSE_H
+#define ELLIPSE_H
+
+#include <vector>    
+#include <iterator>
+#include <iostream>
+#include <algorithm>
+#include <assert.h>
+#include "IrregularPolygon.h"
+
+using namespace std;
+
+// We'll draw an asteroid by using an Ellipse
+struct Ellipse: IrregularPolygon {
+    int a, b;  // axis, a is supposed to be the big one
+    int h, k;  // the center of the ellipse
+    int x, y;  // direction
+    int rgb[3];
+    double omega;  // angle rotation
+
+    Ellipse(const int, const int);  // a, b
+    Ellipse(const int, const int, const int, const int);  // a, b, h, k
+
+    void move(const int, const int);
+    void set_contour(const int);
+    void rotate(const double);  // rotate over the center
+    void rotate(const double, const double, const double); // rotate over p.x, p.y
+    void scale(const double);
+
+    friend ostream & operator << (ostream &, IrregularPolygon &);
+};
+
+
+#endif
+// Ellipse.cpp  ------------------------------------------------------------------------------
+
+#include "Ellipse.h"
+
+
+template<typename T>
+std::vector<double> linspace(T start_in, T end_in, int num_in) {
+    std::vector<double> linspaced;
+    double start = static_cast<double>(start_in);
+    double end = static_cast<double>(end_in);
+    double num = static_cast<double>(num_in);
+    if (num == 0) { return linspaced; }
+    if (num == 1) {
+        linspaced.push_back(start);
+        return linspaced;
+    }
+    double delta = (end - start) / (num - 1);
+    for (int i = 0; i < num-1; ++i) {
+          linspaced.push_back(start + delta * i);
+    }
+    linspaced.push_back(end); // I want to ensure that start and end
+                            // are exactly the same as the input
+    return linspaced;
+}
+
+// a: big axis, b: small axis.
+inline double y_ellipse(const double x, const double a, const double b) {
+    assert (x <= a);
+    return b*sqrt(1 - (x/a)*(x/a));
+}
+
+void Ellipse::move(const int dx, const int dy) {
+    h += dx;
+    k += dy;
+    for (auto &c: coordinates) c.move(dx, dy);
+}
+
+Ellipse::Ellipse(const int a_, const int b_): a(a_), b(b_ ) {
+    h = 0;
+    k = 0;
+    x = 0;
+    y = 0;
+    omega = 0;
+    rgb[0] = 0;
+    rgb[1] = 255;
+rgb[2] = 0;
+}
+
+Ellipse::Ellipse(const int a_, const int b_, const int h_, const int k_): 
+        Ellipse::Ellipse(a_, b_) {
+    move(h_, k_);
+}
+
+
+void Ellipse::set_contour(const int samples) {
+    vector<double> x_values = linspace<double>(-a, a, samples);
+    coordinates.resize(samples);
+    // if the third argument is begin() we need to resize it previously
+    transform(x_values.begin(), x_values.end(), coordinates.begin(), [&](double x_i) {
+        return Coordenada(x_i, y_ellipse(x_i, a, b)); 
+    });
+    unsigned i = coordinates.size();
+    while (i--) {
+        const Coordenada c = coordinates[i];
+        coordinates.emplace_back(c.x, -c.y);
+    }
+}
+
+// ostream & operator << (ostream &out, Ellipse &ellipse) {
+//     out << "(h, k) = " << "( " << ellipse.h << ", " << ellipse.k << ")" << endl;
+//     out << "a = " << ellipse.a << endl;
+//     out << "b = " << ellipse.b << endl;
+//     for (auto &c: ellipse.coordinates) out << c << endl;
+//     return out;
+// }
+
+void Ellipse::rotate(const double theta) {
+    for (auto &c: coordinates) {
+        c.rotate(theta);
+    }
+}
+
+void Ellipse::rotate(const double theta, const double dx, const double dy) {
+    for (auto &c: coordinates) {
+        c.move(-dx, -dy);
+        c.rotate(theta);
+        c.move(dx, dy);
+    }
+}
+
+
+// void scale(const double);
+
+// animacion.cpp  ------------------------------------------------------------------------------
+
+#include <vector>
+#include <thread>
+#include <utility>
+#include <assert.h>
+#include <iostream>
+#include <algorithm>
+#include <experimental/random>
+
+#include "IrregularPolygon.h"
+#include "Coordenada.h"
+#include "Ellipse.h"
+
+#include <unistd.h>  // required for gfx
+#include "gfx.h"
+
+#include <X11/Xlib.h>  // get width and height of screen by calling s->height, s->screen
+
+
+using namespace std;
+
+void plot(const Ellipse &ellipse) {
+    unsigned n = ellipse.coordinates.size();
+    for (unsigned i = 0; i < n - 1; ++i) {
+        const auto c1 = ellipse.coordinates[i];
+        const auto c2 = ellipse.coordinates[i + 1];
+        gfx_line(c1.x, c1.y, c2.x, c2.y);
+        gfx_flush();
+    }
+    Coordenada c1 = ellipse.coordinates[n - 2], c2 = ellipse.coordinates[n - 1];
+    gfx_line(c1.x, c1.y, c2.x, c2.y);
+    gfx_flush();
+}
+
+Ellipse meteor_test(const int width, const int height) {
+    const int h = width >> 1, k = height >> 1;
+    const int size = 2;
+    const int a = h >> size, b = k >> size;
+    Ellipse m(a, b);
+    m.set_contour(16);
+    m.move(h, k);
+    m.x = 8;
+    m.y = 8;
+    m.omega = 0.4;
+    return m;
+}
+
+vector<Ellipse> build_meteors(const int n, int width, int height, const int resolution) {
+    pair<int, double> attrs[3] = { make_pair(8, 0.2), make_pair(16, 0.4), make_pair(32,0.8), };
+    const double PI = 3.14159265;
+    vector<Ellipse> meteors;
+    meteors.reserve(n);
+    for (int i = 0; i < n; ++i) {
+        const int choice = experimental::randint(0, 2);
+        const int size = choice + 2;
+        const int h = experimental::randint(0, width) >> 1, k = experimental::randint(0, height) >> 1;
+        const int a = h >> size, b = k >> size;
+        const float omega = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * PI*2;
+        const auto attr = attrs[choice];
+        Ellipse m(a, b);
+        m.set_contour(resolution);  // CALL set_countour immediately after instantiation
+        m.move(h, k);
+        m.x = attr.first * cos(omega);
+        m.y = attr.first * sin(omega);
+        m.omega = attr.second * omega;
+        meteors.push_back(m);
+    }
+    return meteors;
+}
+
+void meteor_transition(Ellipse &m, const int &width, const int &height) {
+    plot(m);
+    m.rotate(m.omega, m.h, m.k);
+    m.move(m.x, m.y);
+    if (m.h < 0 || m.h > width) m.x *= -1;
+    if (m.k < 0 || m.k > height) m.y *= -1;
+}
+
+/**
+ * size: 2 big, 3 medium, 4 small
+ */
+void plot_animation(const int &width, const int &height, const char *title, 
+        const int n, const int resolution) {
+    auto meteors = build_meteors(n, width, height, resolution);
+    // auto m = meteor_test(width, height);
+    gfx_open(width, height, title);
+    gfx_color(0,200,100);
+    gfx_clear();
+    while (true) {
+        gfx_clear();
+        for (auto &m: meteors) 
+            meteor_transition(m, width, height);
+        usleep(41666);
+    }
+    // gfx_wait();
+}
+
+int main(int argc, const char *argv[]) {
+    if (argc != 2) {
+        cout << "./animacion [N_ASTEROIDES]" << endl;
+        exit(1);
+    }
+    const int meteor_count = atoi(argv[1]);
+    cout << meteor_count << endl;
+    const int resolution = 7;
+    Display *d = XOpenDisplay(NULL);
+    Screen *s = DefaultScreenOfDisplay(d);
+    const double k = 1;
+    const int w = ((int) s->width) * k;
+    const int h = ((int) s->height) * k;
+    plot_animation(w, h, "Angelino", meteor_count, resolution);
+    cout << "Width: " << w << " Height: " << h << endl;
+    return 0;
+}
+
+// Makefile  ------------------------------------------------------------------------------
+
+compile: gfx.o animacion.o IrregularPolygon.o Coordenada.o Ellipse.o
+	g++ gfx.o animacion.o Coordenada.o IrregularPolygon.o Ellipse.o -lX11 -Wall
+IrregularPolygon.o: IrregularPolygon.cpp
+	g++ IrregularPolygon.cpp -c
+Ellipse.o: Ellipse.cpp
+	g++ Ellipse.cpp -c
+Coordenada.o: Coordenada.cpp
+	g++ Coordenada.cpp -c
+gfx.o: gfx.c 
+	gcc gfx.c -c
+animacion.o: animacion.cpp
+	g++ animacion.cpp -c 
+clear:
+	rm *\.o 
+	rm a.out 
+
