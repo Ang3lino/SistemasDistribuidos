@@ -11,8 +11,8 @@ struct Coordenada {
     double x, y;
 
     Coordenada (double = 0, double = 0);
-    double obtenerX ();
-    double obtenerY ();
+    void rotate(const double);
+    void move(const double, const double);
     double magnitude();
 
     friend ostream & operator << (ostream &, const Coordenada &);

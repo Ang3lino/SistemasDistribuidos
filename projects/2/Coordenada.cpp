@@ -16,14 +16,18 @@ ostream& operator << (ostream &out, const Coordenada &c) {
 }
 
 double Coordenada::magnitude() {
-  return sqrt(x*x + y*y);
+    return sqrt(x*x + y*y);
 }
 
-double Coordenada::obtenerX () {
-  return x;
+void Coordenada::move(const double dx, const double dy) {
+    x += dx;
+    y += dy;
 }
 
-double Coordenada::obtenerY () {
-  return y;
+//
+void Coordenada::rotate(const double theta) {
+    const double a = x, b = y;
+    const double c = cos(theta), s = sin(theta);
+    x = a*c - b*s;
+    y = a*s + b*c;
 }
-

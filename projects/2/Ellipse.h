@@ -21,6 +21,7 @@ struct Ellipse: IrregularPolygon {
     void move(const int, const int);
     void set_contour(const int);
     void rotate(const double);
+    void rotate(const double, const double, const double);
     void scale(const double);
 
     friend ostream & operator << (ostream &, IrregularPolygon &);

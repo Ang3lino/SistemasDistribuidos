@@ -1,11 +1,6 @@
 
 #include "Ellipse.h"
 
-// a: big axis, b: small axis.
-inline double ellipse(const double x, const double a, const double b) {
-    assert (x <= a);
-    return b*sqrt(1 - (x/a)*(x/a));
-}
 
 template<typename T>
 std::vector<double> linspace(T start_in, T end_in, int num_in) {
@@ -27,32 +22,35 @@ std::vector<double> linspace(T start_in, T end_in, int num_in) {
     return linspaced;
 }
 
+// a: big axis, b: small axis.
+inline double y_ellipse(const double x, const double a, const double b) {
+    assert (x <= a);
+    return b*sqrt(1 - (x/a)*(x/a));
+}
+
 void Ellipse::move(const int dx, const int dy) {
-    transform(coordinates.begin(), coordinates.end(), coordinates.begin(), 
-        [&](Coordenada c) {
-            c.x += dx;
-            c.y += dy;
-            return c;
-    });
+    h += dx;
+    k += dy;
+    for (auto &c: coordinates) c.move(dx, dy);
 }
 
-Ellipse::Ellipse(const int a_, const int b_): a(a_), b(b_ ) { }
+Ellipse::Ellipse(const int a_, const int b_): a(a_), b(b_ ) {
+    h = 0;
+    k = 0;
+}
 
-Ellipse::Ellipse(const int a_, const int b_, const int h, const int k): 
+Ellipse::Ellipse(const int a_, const int b_, const int h_, const int k_): 
         Ellipse::Ellipse(a_, b_) {
-    move(h, k);
+    move(h_, k_);
 }
-
-// void rotate(const double);
-// void scale(const double);
-
 
 
 void Ellipse::set_contour(const int samples) {
     vector<double> x_values = linspace<double>(-a, a, samples);
-    IrregularPolygon ip(samples);
+    coordinates.resize(samples);
+    // if the third argument is begin() we need to resize it previously
     transform(x_values.begin(), x_values.end(), coordinates.begin(), [&](double x_i) {
-        return Coordenada(x_i, ellipse(x_i, a, b)); 
+        return Coordenada(x_i, y_ellipse(x_i, a, b)); 
     });
     unsigned i = coordinates.size();
     while (i--) {
@@ -69,5 +67,20 @@ ostream & operator << (ostream &out, Ellipse &ellipse) {
     return out;
 }
 
+void Ellipse::rotate(const double theta) {
+    for (auto &c: coordinates) {
+        c.rotate(theta);
+    }
+}
 
+void Ellipse::rotate(const double theta, const double dx, const double dy) {
+    for (auto &c: coordinates) {
+        c.move(-dx, -dy);
+        c.rotate(theta);
+        c.move(dx, dy);
+    }
+}
+
+
+// void scale(const double);
 
