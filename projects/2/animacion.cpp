@@ -118,7 +118,7 @@ int main(int argc, const char *argv[]) {
     const int resolution = 7;
     Display *d = XOpenDisplay(NULL);
     Screen *s = DefaultScreenOfDisplay(d);
-    const double k = 0.75;
+    const double k = 1;
     const int w = ((int) s->width) * k;
     const int h = ((int) s->height) * k;
     plot_animation(w, h, "Angelino", meteor_count, resolution);
