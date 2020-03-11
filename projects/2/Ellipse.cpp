@@ -50,19 +50,34 @@ Ellipse::Ellipse(const int a_, const int b_, const int h_, const int k_):
     move(h_, k_);
 }
 
+set<double> linspace_random(const int a, const int b, const unsigned samples) {
+    set<double> unique_points;
+    while (unique_points.size() < samples) {
+        unique_points.insert(experimental::randint(a, b));
+    }
+    return unique_points;
+}
+
 
 void Ellipse::set_contour(const int samples) {
-    vector<double> x_values = linspace<double>(-a, a, samples);
+    const auto x_values = linspace(-a, a, samples);
     coordinates.resize(samples);
     // if the third argument is begin() we need to resize it previously
     transform(x_values.begin(), x_values.end(), coordinates.begin(), [&](double x_i) {
         return Coordenada(x_i, y_ellipse(x_i, a, b)); 
     });
-    unsigned i = coordinates.size();
+    unsigned i = coordinates.size(); // n - 1 ? 
+    cout << "Antes" << endl;;
+    for (auto &c: coordinates) cout << c << endl;
+    cout << endl;
     while (i--) {
         const Coordenada c = coordinates[i];
         coordinates.emplace_back(c.x, -c.y);
     }
+    cout << "Despues" << endl;
+    for (auto &c: coordinates) cout << c << endl;
+    cout << endl;
+    cout << endl;
 }
 
 // ostream & operator << (ostream &out, Ellipse &ellipse) {

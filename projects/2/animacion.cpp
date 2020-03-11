@@ -21,6 +21,7 @@ using namespace std;
 
 void plot(const Ellipse &ellipse) {
     unsigned n = ellipse.coordinates.size();
+    gfx_color(ellipse.rgb[0], ellipse.rgb[1], ellipse.rgb[2]);
     for (unsigned i = 0; i < n - 1; ++i) {
         const auto c1 = ellipse.coordinates[i];
         const auto c2 = ellipse.coordinates[i + 1];
@@ -53,7 +54,7 @@ vector<Ellipse> build_meteors(const int n, int width, int height, const int reso
     for (int i = 0; i < n; ++i) {
         const int choice = experimental::randint(0, 2);
         const int size = choice + 2;
-        const int h = experimental::randint(0, width) >> 1, k = experimental::randint(0, height) >> 1;
+        const int h = experimental::randint(1, width) >> 1, k = experimental::randint(1, height) >> 1;
         const int a = h >> size, b = k >> size;
         const float omega = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * PI*2;
         const auto attr = attrs[choice];
@@ -68,11 +69,13 @@ vector<Ellipse> build_meteors(const int n, int width, int height, const int reso
     return meteors;
 }
 
-void random_change_rgb() {
+void random_change_rgb(Ellipse &m) {
     const int r = (experimental::randint(0, 255));
     const int g = (experimental::randint(0, 255));
     const int b = (experimental::randint(0, 255));
-    gfx_color(r, g, b);
+    m.rgb[0] = r;
+    m.rgb[1] = g;
+    m.rgb[2] = b;
 }
 
 void meteor_transition(Ellipse &m, const int &width, const int &height) {
@@ -81,11 +84,11 @@ void meteor_transition(Ellipse &m, const int &width, const int &height) {
     m.move(m.x, m.y);
     if (m.h < 0 || m.h > width) { 
         m.x *= -1;
-        random_change_rgb();
+        random_change_rgb(m);
     }
     if (m.k < 0 || m.k > height) {
         m.y *= -1;
-        random_change_rgb();
+        random_change_rgb(m);
     }
 }
 

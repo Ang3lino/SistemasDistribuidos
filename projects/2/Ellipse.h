@@ -2,11 +2,13 @@
 #ifndef ELLIPSE_H
 #define ELLIPSE_H
 
+#include <set>
 #include <vector>    
 #include <iterator>
 #include <iostream>
 #include <algorithm>
 #include <assert.h>
+#include <experimental/random>
 #include "IrregularPolygon.h"
 
 using namespace std;
