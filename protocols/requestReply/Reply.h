@@ -8,7 +8,7 @@ class Reply{
 public:
     Reply(int);  // port
     Message *getRequest(void);
-    void sendReply(char *respuesta);
+    void sendReply(char *reply, size_t arglen, OperationId operation) ;
 private:
     DatagramSocket *sock;
     string addr;

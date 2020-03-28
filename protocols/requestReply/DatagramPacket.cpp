@@ -27,7 +27,6 @@ void DatagramPacket::setPort(uint16_t iport) { port = iport; }
 void DatagramPacket::setLength(size_t len) { length = len; }
 
 void DatagramPacket::setData(char* buf, size_t len) {
-    data = new char(len);
-    if (buf != NULL) memcpy(data, buf, len);
+	data = buf;
 	setLength(len);
 }

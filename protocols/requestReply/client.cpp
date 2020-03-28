@@ -1,24 +1,28 @@
+
 #include "Request.h"
 #include <iostream>
+#include <stdio.h>
 
-int main(int argc, char const *argv[])
-{
-    int arr[2] = {123, 246};
+int main(int argc, char const *argv[]) {
+    int arr[2] = {2, 2};
     string ip("127.0.0.1");
     uint16_t port = 5400;
-    // DatagramPacket dp_numbers((char *) &arr[0], 2 * sizeof(int), "127.0.0.1", port);
-    // DatagramPacket result(NULL, sizeof(int));
-    // DatagramSocket client;
-    // client.send(dp_numbers);
-    // int n = client.receive(result);
-    // int *ans = (int *) result.getData();
-    // cout << ans[0] << endl;
+
+    if (argc != 4) {
+        printf("[%s] [ip] [int] [int]", argv[0]);
+        printf("Se ejecutara en el localhost, sumando %d con %d", arr[0], arr[1]);
+    } else {
+        ip = argv[1];
+        arr[0] = atoi(argv[2]);
+        arr[1] = atoi(argv[3]);
+    }
+
     Request request(ip, port);
-    int *result = (int *) request.doOperation(OperationId::SUM, (char *) arr, sizeof(arr));
+    int *result = (int *) request.doOperation( OperationId::SUM, (char *) arr, sizeof(arr));
     if (result == NULL) {
         cerr << "NULL returned";
         exit(1);
     }
-    cout << *result << endl;
+    printf("%d + %d = %d\n", arr[0], arr[1], *result);
     return 0;
 }

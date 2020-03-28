@@ -36,9 +36,10 @@ char *Request::doOperation(string &ip, int port, OperationId op_id,
         DatagramPacket p((char *) msg, sizeof(Message), ip, port);
         // printMessage(*msg);
         sock->send(p);
-        DatagramPacket response(NULL, sizeof(int));
+        Message *buff = new Message;
+        DatagramPacket response((char *) buff, sizeof(Message));
         sock->receive(response);
-        return response.getData();
+        return buff->arguments;
     }
     return NULL;  // No match for que operation id requested
 }
