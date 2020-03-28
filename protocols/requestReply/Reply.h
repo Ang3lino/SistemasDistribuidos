@@ -6,11 +6,13 @@
 
 class Reply{
 public:
-    Reply(int );  // port
+    Reply(int);  // port
     Message *getRequest(void);
     void sendReply(char *respuesta);
 private:
-    DatagramSocket *socketlocal;
+    DatagramSocket *sock;
+    string addr;
+    int port;
 };
 
 #endif

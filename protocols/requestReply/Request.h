@@ -13,11 +13,11 @@ public:
     Request(string, int);
 
     // ip, port, operationId, args
-    char *doOperation(string &, int, OperationId, char *);
+    char *doOperation(string &, int, OperationId, char *, size_t);
     // operationId, args
-    char *doOperation(OperationId, char *);
+    char *doOperation(OperationId, char *, size_t);
 private:
-    DatagramSocket sock;
+    DatagramSocket *sock;
     string ip;
     int port;
 };
