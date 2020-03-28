@@ -13,6 +13,7 @@ public:
     // data, len, ip, port
     DatagramPacket(char* , size_t, const string &, uint16_t );
     DatagramPacket(char* , size_t);
+    DatagramPacket();
     ~DatagramPacket();
     string getAddress();
     char *getData();
