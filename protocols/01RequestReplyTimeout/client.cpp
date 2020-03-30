@@ -9,8 +9,8 @@ int main(int argc, char const *argv[]) {
     uint16_t port = 5400;
 
     if (argc != 4) {
-        printf("[%s] [ip] [int] [int]", argv[0]);
-        printf("Se ejecutara en el localhost, sumando %d con %d", arr[0], arr[1]);
+        printf("[%s] [ip] [int] [int]\n", argv[0]);
+        printf("Se ejecutara en el localhost, sumando %d con %d\n", arr[0], arr[1]);
     } else {
         ip = argv[1];
         arr[0] = atoi(argv[2]);
@@ -19,10 +19,8 @@ int main(int argc, char const *argv[]) {
 
     Request request(ip, port);
     int *result = (int *) request.doOperation( OperationId::SUM, (char *) arr, sizeof(arr), 2, 0);
-    if (result == NULL) {
-        cerr << "NULL returned";
-        exit(1);
-    }
+    if (result == NULL) 
+        throw "NULL returned";
     printf("%d + %d = %d\n", arr[0], arr[1], *result);
     return 0;
 }

@@ -22,9 +22,10 @@ public:
     // operationId, args, arglen, secs, usecs
     char *doOperation(OperationId, char *, size_t, time_t, suseconds_t);
 private:
-    DatagramSocket *sock;
+    DatagramSocket *sock;  // this attribute could be removed since it is required in one member function and their args for its constructor can be infered.
     string ip;
     int port;
 };
+
 
 #endif
