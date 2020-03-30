@@ -14,11 +14,11 @@ enum MessageType: int { REQUEST=1, REPLY };
 struct Message {
     MessageType messageType; // Solicitud, Respuesta
     int requestId;
-    OperationId operationId; // Identificador del mensaje
+    OperationId operationId; //Identificador del mensaje
     int argumentLength;
-    char arguments[MAX_UDP_LENGTH]; // Identificador de la operacion
+    char arguments[MAX_UDP_LENGTH]; 
+    // char *arguments;
 
-    /** messageType, requestId, operationId, argumentLength, arguments  */
     Message(MessageType , int , OperationId , int , char *);
     Message();
 

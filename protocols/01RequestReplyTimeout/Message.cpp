@@ -6,6 +6,7 @@ Message::Message(MessageType type, int requestid, OperationId opid, int argument
         requestId(requestid),
         operationId(opid), 
         argumentLength(argument_length) {
+    // arguments = new char(argument_length);
     memcpy(arguments, args, argument_length);
 }
 
