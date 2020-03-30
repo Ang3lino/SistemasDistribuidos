@@ -18,7 +18,7 @@ int main(int argc, char const *argv[]) {
     }
 
     Request request(ip, port);
-    int *result = (int *) request.doOperation( OperationId::SUM, (char *) arr, sizeof(arr));
+    int *result = (int *) request.doOperation( OperationId::SUM, (char *) arr, sizeof(arr), 2, 0);
     if (result == NULL) {
         cerr << "NULL returned";
         exit(1);

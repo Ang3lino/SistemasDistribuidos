@@ -34,10 +34,13 @@ char *Request::doOperation(string &ip, int port, OperationId op_id, char *args,
         sock->send(p);
         Message *buff = new Message;
         DatagramPacket response((char *) buff, sizeof(Message));
-        int n = -1, attempt = 0;
-        do {
-            n = sock->receiveTimeout(response, secs, u_secs);
-        } while (n < 0 && ++attempt < 8);
+        const int MAX_ATTEMPT = 7;
+        int n = -1, attempt = MAX_ATTEMPT;
+        while (n < 0 && --attempt >= 0) n = sock->receiveTimeout(response, secs, u_secs);
+        if (n < 0) {
+            cerr << "The server is not available.\n";
+            exit(EXIT_FAILURE);
+        }
         return buff->arguments;
     }
     return NULL;  // No match for que operation id requested
