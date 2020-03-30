@@ -6,7 +6,8 @@ DatagramSocket::DatagramSocket(): DatagramSocket(0) {}
 DatagramSocket::DatagramSocket(uint16_t iport): DatagramSocket(iport, "0.0.0.0") {}
 
 DatagramSocket::DatagramSocket(uint16_t iport, const std::string &addr) {
-	s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	s = socket(AF_INET, SOCK_DGRAM, 0);
+	// s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	bzero((char *)&localAddress, sizeof(localAddress));
 	localAddress.sin_family = AF_INET;
 	localAddress.sin_addr.s_addr = inet_addr(addr.c_str());
