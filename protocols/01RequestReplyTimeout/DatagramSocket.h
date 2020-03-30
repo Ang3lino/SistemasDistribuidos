@@ -9,6 +9,7 @@
 #include <strings.h>
 #include <unistd.h>
 
+#include <errno.h>
 #include "DatagramPacket.h"
 
 class DatagramSocket {
