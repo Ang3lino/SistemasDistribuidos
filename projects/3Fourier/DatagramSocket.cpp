@@ -6,6 +6,15 @@ DatagramSocket::DatagramSocket(): DatagramSocket(0) {}
 DatagramSocket::DatagramSocket(uint16_t iport): DatagramSocket(iport, "0.0.0.0") {}
 
 DatagramSocket::DatagramSocket(uint16_t iport, const std::string &addr): timeout_set(false) {
+	#ifdef _WIN32  // detect windows of 32 and 64 bits
+		WSAData wsaData;
+		WORD word = MAKEWORD(2, 2);
+		if (WSAStartup(word, &wsaData) != 0) {
+			std::cerr << "Server: WSAStartup failed with error: " << WSAGetLastError() << std::endl;
+			exit(1);
+		}
+	#endif 
+
 	s = socket(AF_INET, SOCK_DGRAM, 0);
 	// bzero((char *)&localAddress, sizeof(localAddress));
 	memset((char *) &localAddress, 0, sizeof(localAddress));
@@ -15,7 +24,7 @@ DatagramSocket::DatagramSocket(uint16_t iport, const std::string &addr): timeout
 	bind(s, (struct sockaddr *) &localAddress, sizeof(localAddress));
 }
 
-void DatagramSocket::setTimeout(time_t secs, time_t u_secs) {
+void DatagramSocket::setTimeout(long secs, long u_secs) {
 	timeout = { 
 		.tv_sec = secs, 
 		.tv_usec = u_secs };  

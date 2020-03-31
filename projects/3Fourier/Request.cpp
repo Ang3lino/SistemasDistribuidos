@@ -26,7 +26,7 @@ char *Request::doOperation(OperationId op_id, char *args, size_t arglen) {
     return doOperation(ip, port, op_id, args, arglen);  
 }
 
-char *Request::doOperation(string &ip, int port, OperationId op_id, char *args, size_t arglen, time_t secs, suseconds_t u_secs) {
+char *Request::doOperation(string &ip, int port, OperationId op_id, char *args, size_t arglen, time_t secs, long u_secs) {
     Message *msg = new Message( MessageType::REQUEST, 1, op_id, arglen, args);
     if (msg->operationId == OperationId::SUM) {
         DatagramPacket p((char *) msg, sizeof(Message), ip, port);
@@ -45,7 +45,7 @@ char *Request::doOperation(string &ip, int port, OperationId op_id, char *args, 
     return NULL;  // No match for que operation id requested
 }
 
-char *Request::doOperation(OperationId op_id, char *args, size_t arglen, time_t secs, suseconds_t u_secs) {
+char *Request::doOperation(OperationId op_id, char *args, size_t arglen, time_t secs, long u_secs) {
     return doOperation(ip, port, op_id, args, arglen, secs, u_secs);  
 }
  

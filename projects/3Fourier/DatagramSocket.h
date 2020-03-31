@@ -9,8 +9,10 @@
 	#include <arpa/inet.h>
 #else
 	#include <ws2tcpip.h>
+	// #pragma comment(lib,"ws2_32.lib") // Winsock Library, it only works in the microsoft compiler, MinGW ignores it
 #endif
 
+#include <iostream>
 #include <strings.h>
 #include <unistd.h>
 
@@ -30,7 +32,7 @@ public:
 	int receive(DatagramPacket &);
 	
 	// secs, usecs
-	void setTimeout(time_t, time_t);
+	void setTimeout(long, long);
 	// DatagramPacket, secs, usecs
 	int receiveTimeout(DatagramPacket &, time_t, time_t);
 private:

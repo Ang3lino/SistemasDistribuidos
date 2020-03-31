@@ -18,9 +18,9 @@ public:
     char *doOperation(OperationId, char *, size_t);
 
     // ip, port, operationId, args, arglen, secs, usecs
-    char *doOperation(string &, int, OperationId, char *, size_t, time_t, suseconds_t);
+    char *doOperation(string &, int, OperationId, char *, size_t, time_t, long);
     // operationId, args, arglen, secs, usecs
-    char *doOperation(OperationId, char *, size_t, time_t, suseconds_t);
+    char *doOperation(OperationId, char *, size_t, time_t, long);
 private:
     DatagramSocket *sock;  // this attribute could be removed since it is required in one member function and their args for its constructor can be infered.
     string ip;
