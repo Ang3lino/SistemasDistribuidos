@@ -8,13 +8,15 @@
 	#include <netinet/in.h>
 	#include <arpa/inet.h>
 #else
-	#include <ws2tcpip.h>
+	// #include <ws2tcpip.h>
+	#include <winsock2.h>
 	// #pragma comment(lib,"ws2_32.lib") // Winsock Library, it only works in the microsoft compiler, MinGW ignores it
 #endif
 
 #include <iostream>
 #include <strings.h>
 #include <unistd.h>
+#include <sys/time.h>
 
 #include <errno.h>
 #include "DatagramPacket.h"

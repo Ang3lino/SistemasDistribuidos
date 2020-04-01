@@ -15,7 +15,7 @@ DatagramSocket::DatagramSocket(uint16_t iport, const std::string &addr): timeout
 		}
 	#endif 
 
-	s = socket(AF_INET, SOCK_DGRAM, 0);
+	s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	// bzero((char *)&localAddress, sizeof(localAddress));
 	memset((char *) &localAddress, 0, sizeof(localAddress));
 	localAddress.sin_family = AF_INET;
@@ -40,7 +40,7 @@ void DatagramSocket::unbind() {
 }
 
 int DatagramSocket::receive(DatagramPacket &p) {
-	socklen_t len = sizeof(remoteAddress);
+	int len = sizeof(remoteAddress);
 	int n = recvfrom(s, p.getData(), p.getLength(), 0, (struct sockaddr *) &remoteAddress, &len);
 	p.setPort(ntohs(remoteAddress.sin_port));
 	p.setAddress(std::string(inet_ntoa(remoteAddress.sin_addr)));
@@ -53,44 +53,34 @@ void DatagramSocket::setTimeout(long secs, long u_secs) {
 		.tv_sec = secs, 
 		.tv_usec = u_secs };  
 	timeout_set = true;
-	#ifdef linux
-		setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout, sizeof(timeout));
+	#ifdef __linux__
+		setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout, sizeof(struct timeval));
 	#else 
-		// Setup fd_set structure
-		// FD_ZERO(&fds);
-		// FD_SET(s, &fds);
+		FD_ZERO(&fds);
+		FD_SET(s, &fds);
 	#endif
 }
 
-int DatagramSocket::receiveTimeout(DatagramPacket & p, time_t secs, time_t u_secs) {
-	socklen_t len = sizeof(remoteAddress);
-	#ifdef linux
-		setTimeout(secs, u_secs);  // setting timeout is required once 
-		int n = recvfrom(s, p.getData(), p.getLength(), 0, (struct sockaddr *) &remoteAddress, &len);
-		if (n < 0) {  // deal with errors if so
+int DatagramSocket::receiveTimeout(DatagramPacket &p, time_t secs, time_t u_secs) {
+	int len = sizeof(remoteAddress);
+	// if (!timeout_set) setTimeout(secs, u_secs);  // setting timeout is required once 
+	// #ifdef _WIN32
+	// 	int sret = select(0, &fds, NULL, NULL, &timeout);
+	// 	if (sret == 0) {
+	// 		cout << "Timeout! " << sret << endl;
+	// 		return NULL;
+	// 	}
+	// #endif
+	int n = recvfrom(s, p.getData(), p.getLength(), 0, (struct sockaddr *) &remoteAddress, &len);
+	if (n < 0) {  // deal with errors if so
+		#ifdef __linux__
 			if (errno == EWOULDBLOCK) 
 				fprintf(stderr, "Timeout \n");
 			else 
 				fprintf(stderr, "Error in recvfrom. \n");
-			return n;
-		}
-	#else 
-		setTimeout(secs, u_secs);
-		// getsockname(s, (sockaddr *) &remoteAddress, (int *) sizeof(remoteAddress));
-		fd_set readfds, masterfds;
-		int n;
-		FD_ZERO(&masterfds);
-		FD_SET(s, &masterfds);
-		memcpy(&readfds, &masterfds, sizeof(fd_set));
-		if (select(s+1, &readfds, NULL, NULL, &timeout) < 0) {
-			perror("on select");
-			exit(1);
-		}
-		if (FD_ISSET(s, &readfds)) {
-			n = recvfrom(s, p.getData(), p.getLength(), 0, (struct sockaddr *) &remoteAddress, &len);
-		} else 
-			fprintf(stderr, "Timeout\n");
-	#endif
+		#endif
+		return n;
+	}
 	p.setPort(ntohs(remoteAddress.sin_port));  // everything is ok
 	p.setAddress(std::string(inet_ntoa(remoteAddress.sin_addr)));
 	p.setLength(n);
