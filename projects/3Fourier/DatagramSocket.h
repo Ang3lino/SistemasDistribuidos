@@ -36,8 +36,8 @@ public:
 	// DatagramPacket, secs, usecs
 	int receiveTimeout(DatagramPacket &, time_t, time_t);
 private:
-	struct sockaddr_in localAddress;
-	struct sockaddr_in remoteAddress;
+	sockaddr_in localAddress;
+	sockaddr_in remoteAddress;
 
 	struct timeval timeout;
 	bool timeout_set;

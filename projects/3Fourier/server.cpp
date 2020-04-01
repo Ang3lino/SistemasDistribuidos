@@ -20,6 +20,7 @@ int main(int argc, char const *argv[]) {
     while (1) {
         Message *msg = reply.getRequest();
         printf("Request %d ", ++request_count);
+        cout << "Request: \n" << *msg << endl;
         if (msg->operationId == OperationId::SUM) {
             char *result = sum(msg->arguments);
             reply.sendReply(result, sizeof(int), OperationId::SUM);

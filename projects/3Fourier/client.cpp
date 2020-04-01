@@ -7,7 +7,7 @@ int main(int argc, char const *argv[]) {
     int arr[2] = {2, 2};
     string ip("127.0.0.1");
     uint16_t port = 5400;
-    int n = 1000;
+    int n = 1;
 
     if (argc != 5) {
         printf("%s [ip] [int] [int] [N_REQUEST]\n", argv[0]);

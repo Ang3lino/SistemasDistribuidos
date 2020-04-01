@@ -32,7 +32,6 @@ void DatagramSocket::setTimeout(long secs, long u_secs) {
 	#ifdef linux
 		setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout, sizeof(timeout));
 	#else 
-		struct fd_set fds;
 		// Setup fd_set structure
 		FD_ZERO(&fds);
 		FD_SET(s, &fds);
@@ -75,6 +74,7 @@ int DatagramSocket::receiveTimeout(DatagramPacket & p, time_t secs, time_t u_sec
 			return n;
 		}
 	#else 
+		getsockname(s, (SOCKADDR *) &remoteAddress, (int *)sizeof(remoteAddress));
 		int n = select(0, &fds, 0, 0, &timeout);
 		if (n == -1) {
 			fprintf(stderr, "Error with the connection"); 
