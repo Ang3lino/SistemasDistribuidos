@@ -77,16 +77,19 @@ int DatagramSocket::receiveTimeout(DatagramPacket & p, time_t secs, time_t u_sec
 	#else 
 		setTimeout(secs, u_secs);
 		// getsockname(s, (sockaddr *) &remoteAddress, (int *) sizeof(remoteAddress));
-
 		fd_set readfds, masterfds;
-		if (n == -1) {
-			fprintf(stderr, "Error with the connection"); 
-			return n;
-	 	} else if (n == 0) {
-			fprintf(stderr, "Timeout \n"); 
-			return n;
+		int n;
+		FD_ZERO(&masterfds);
+		FD_SET(s, &masterfds);
+		memcpy(&readfds, &masterfds, sizeof(fd_set));
+		if (select(s+1, &readfds, NULL, NULL, &timeout) < 0) {
+			perror("on select");
+			exit(1);
 		}
-		n = recvfrom(s, p.getData(), p.getLength(), 0, (struct sockaddr *) &remoteAddress, &len);
+		if (FD_ISSET(s, &readfds)) {
+			n = recvfrom(s, p.getData(), p.getLength(), 0, (struct sockaddr *) &remoteAddress, &len);
+		} else 
+			fprintf(stderr, "Timeout\n");
 	#endif
 	p.setPort(ntohs(remoteAddress.sin_port));  // everything is ok
 	p.setAddress(std::string(inet_ntoa(remoteAddress.sin_addr)));
