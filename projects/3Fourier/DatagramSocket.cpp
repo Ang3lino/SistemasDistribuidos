@@ -24,19 +24,6 @@ DatagramSocket::DatagramSocket(uint16_t iport, const std::string &addr): timeout
 	bind(s, (struct sockaddr *) &localAddress, sizeof(localAddress));
 }
 
-void DatagramSocket::setTimeout(long secs, long u_secs) {
-	timeout = { 
-		.tv_sec = secs, 
-		.tv_usec = u_secs };  
-	timeout_set = true;
-	#ifdef linux
-		setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout, sizeof(timeout));
-	#else 
-		// Setup fd_set structure
-		FD_ZERO(&fds);
-		FD_SET(s, &fds);
-	#endif
-}
 
 DatagramSocket::~DatagramSocket() {
 	unbind();
@@ -54,17 +41,31 @@ void DatagramSocket::unbind() {
 
 int DatagramSocket::receive(DatagramPacket &p) {
 	socklen_t len = sizeof(remoteAddress);
-	int n = recvfrom(s, p.getData(), p.getLength(), 0, (struct sockaddr*) &remoteAddress, &len);
+	int n = recvfrom(s, p.getData(), p.getLength(), 0, (struct sockaddr *) &remoteAddress, &len);
 	p.setPort(ntohs(remoteAddress.sin_port));
 	p.setAddress(std::string(inet_ntoa(remoteAddress.sin_addr)));
 	p.setLength(n);
 	return n;
 }
 
+void DatagramSocket::setTimeout(long secs, long u_secs) {
+	timeout = { 
+		.tv_sec = secs, 
+		.tv_usec = u_secs };  
+	timeout_set = true;
+	#ifdef linux
+		setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout, sizeof(timeout));
+	#else 
+		// Setup fd_set structure
+		// FD_ZERO(&fds);
+		// FD_SET(s, &fds);
+	#endif
+}
+
 int DatagramSocket::receiveTimeout(DatagramPacket & p, time_t secs, time_t u_secs) {
-	setTimeout(secs, u_secs);  // setting timeout is required once 
 	socklen_t len = sizeof(remoteAddress);
 	#ifdef linux
+		setTimeout(secs, u_secs);  // setting timeout is required once 
 		int n = recvfrom(s, p.getData(), p.getLength(), 0, (struct sockaddr *) &remoteAddress, &len);
 		if (n < 0) {  // deal with errors if so
 			if (errno == EWOULDBLOCK) 
@@ -74,8 +75,10 @@ int DatagramSocket::receiveTimeout(DatagramPacket & p, time_t secs, time_t u_sec
 			return n;
 		}
 	#else 
-		getsockname(s, (SOCKADDR *) &remoteAddress, (int *)sizeof(remoteAddress));
-		int n = select(0, &fds, 0, 0, &timeout);
+		setTimeout(secs, u_secs);
+		// getsockname(s, (sockaddr *) &remoteAddress, (int *) sizeof(remoteAddress));
+
+		fd_set readfds, masterfds;
 		if (n == -1) {
 			fprintf(stderr, "Error with the connection"); 
 			return n;

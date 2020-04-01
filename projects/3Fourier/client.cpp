@@ -21,10 +21,12 @@ int main(int argc, char const *argv[]) {
 
     Request request(ip, port);
     for (int i = 0; i < n; ++i) {
-        int *result = (int *) request.doOperation( OperationId::SUM, (char *) arr, sizeof(arr), 2, 0);
-        if (result == NULL) 
+        char *buff = request.doOperation( OperationId::SUM, (char *) arr, sizeof(arr), 2, 0);
+        if (buff == NULL) 
             throw "NULL returned";
-        printf("%d + %d = %d\n", arr[0], arr[1], *result);
+        int result;
+        memcpy((char *) &result, buff, sizeof(int));
+        printf("%d + %d = %d\n", arr[0], arr[1], result);
     }
     return 0;
 }

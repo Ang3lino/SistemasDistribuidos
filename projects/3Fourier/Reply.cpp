@@ -8,13 +8,13 @@ Reply::Reply(int port) {
 }
 
 Message *Reply::getRequest(void) {
-    Message *msg = new Message();
-    DatagramPacket p((char *) msg, sizeof(Message));
-    sock->receive(p);
-    addr = p.getAddress();
-    port = p.getPort();
+    Message *msg = new Message;  
+    DatagramPacket *p = new DatagramPacket((char *) msg, sizeof(Message));
+    sock->receive(*p);
+    addr = p->getAddress();
+    port = p->getPort();
     cout << *msg << endl;
-    return msg;
+    return (Message *) p->getData();
 }
 
 Message *newMessage(MessageType type, int request, OperationId op, char *args, int arglen) {

@@ -26,6 +26,8 @@ int main(int argc, char const *argv[]) {
             reply.sendReply(result, sizeof(int), OperationId::SUM);
         } else {
             cerr << "Operacion no reconocida" << endl;
+            char *result = NULL;
+            reply.sendReply(result, sizeof(char), OperationId::UNKNOWN);
             // send NULL
         }
     }
