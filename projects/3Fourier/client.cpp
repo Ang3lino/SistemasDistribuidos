@@ -21,7 +21,7 @@ int main(int argc, char const *argv[]) {
 
     Request request(ip, port);
     for (int i = 0; i < n; ++i) {
-        char *buff = request.doOperation( OperationId::SUM, (char *) arr, sizeof(arr), 2, 0);
+        char *buff = request.doOperation(OperationId::SUM, (char *) arr, sizeof(arr), 1000, 10);
         if (buff == NULL) 
             throw "NULL returned";
         int result;

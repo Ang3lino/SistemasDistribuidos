@@ -49,43 +49,73 @@ int DatagramSocket::receive(DatagramPacket &p) {
 }
 
 void DatagramSocket::setTimeout(long secs, long u_secs) {
-	timeout = { 
-		.tv_sec = secs, 
-		.tv_usec = u_secs };  
-	timeout_set = true;
-	#ifdef __linux__
-		setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout, sizeof(struct timeval));
-	#else 
-		FD_ZERO(&fds);
-		FD_SET(s, &fds);
-	#endif
+    timeout = { 
+        .tv_sec = secs, 
+        .tv_usec = u_secs };  
+    timeout_set = true;
+
+    #ifdef _WIN32
+    DWORD dw = (secs * 1000) + ((u_secs + 999) / 1000);
+    setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char *) &dw, sizeof(dw));
+    #else
+    setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout, sizeof(struct timeval));
+    #endif
 }
 
 int DatagramSocket::receiveTimeout(DatagramPacket &p, time_t secs, time_t u_secs) {
-	int len = sizeof(remoteAddress);
-	// if (!timeout_set) setTimeout(secs, u_secs);  // setting timeout is required once 
-	// #ifdef _WIN32
-	// 	int sret = select(0, &fds, NULL, NULL, &timeout);
-	// 	if (sret == 0) {
-	// 		cout << "Timeout! " << sret << endl;
-	// 		return NULL;
-	// 	}
-	// #endif
-	int n = recvfrom(s, p.getData(), p.getLength(), 0, (struct sockaddr *) &remoteAddress, &len);
-	if (n < 0) {  // deal with errors if so
-		#ifdef __linux__
-			if (errno == EWOULDBLOCK) 
-				fprintf(stderr, "Timeout \n");
-			else 
-				fprintf(stderr, "Error in recvfrom. \n");
-		#endif
-		return n;
-	}
-	p.setPort(ntohs(remoteAddress.sin_port));  // everything is ok
-	p.setAddress(std::string(inet_ntoa(remoteAddress.sin_addr)));
-	p.setLength(n);
-	return n;
+    setTimeout(secs, u_secs);  
+    int len = sizeof(remoteAddress);
+    int n = recvfrom(s, p.getData(), p.getLength(), 0, (struct sockaddr *) &remoteAddress, &len);
+    if (n < 0) {  // deal with errors 
+        #ifdef _WIN32
+        if (WSAGetLastError() == WSAETIMEDOUT) 
+        #else
+        if (errno == EAGAIN || errno == EWOULDBLOCK)
+        #endif
+            std::cout << "Timeout!" << std::endl;
+        else {
+            std::cerr << "Error in recvfrom. " << WSAGetLastError() << std::endl;
+		}
+        return -1;
+    }
+    p.setPort(remoteAddress.sin_port);  
+    p.setAddress(string(inet_ntoa(remoteAddress.sin_addr)));
+    p.setLength(n);
+    return n;
 }
+
+// int DatagramSocket::receiveTimeout(DatagramPacket &p, time_t secs, time_t u_secs) {
+//     timeval timeout = { 
+//         .tv_sec = (long) secs, 
+//         .tv_usec = (long) u_secs };  
+//     fd_set fds;
+//     FD_ZERO(&fds);
+//     FD_SET(s, &fds);
+//     int nfds;
+//     #ifdef _WIN32
+//     nfds = 0;
+//     #else
+//     nfds = s + 1;
+//     #endif
+//     int sret = select(nfds, &fds, NULL, NULL, &timeout);
+//     if (sret <= 0) {
+//         if (sret == 0) 
+//             std::cout << "Timeout!" << std::endl;
+//         else
+//             std::cerr << "Error in select." << std::endl;
+//         return -1;
+//     }
+//     int len = sizeof(remoteAddress);
+//     int n = recvfrom(s, p.getData(), p.getLength(), 0, (struct sockaddr *) &remoteAddress, &len);
+//     if (n < 0) {  // deal with errors 
+//         std::cerr << "Error in recvfrom." << std::endl;
+//         return -1;
+//     }
+//     p.setPort(remoteAddress.sin_port);  
+//     p.setAddress(string(inet_ntoa(remoteAddress.sin_addr)));
+//     p.setLength(n);
+//     return n;
+// }
 
 int DatagramSocket::send(DatagramPacket &p) {
 	// bzero((char *)&remoteAddress, sizeof(remoteAddress));

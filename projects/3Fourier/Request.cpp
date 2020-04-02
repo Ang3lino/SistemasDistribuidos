@@ -34,9 +34,10 @@ char *Request::doOperation(string &ip, int port, OperationId op_id, char *args, 
         DatagramPacket response((char *) buff, sizeof(Message));
         const int MAX_ATTEMPT = 7;
         int n = -1, attempt = MAX_ATTEMPT;
+        DatagramSocket s;
         while (n < 0 && --attempt >= 0) {
-            sock->send(p);
-            n = sock->receiveTimeout(response, secs, u_secs);
+            s.send(p);
+            n = s.receiveTimeout(response, secs, u_secs);
         }
         if (n < 0) 
             throw "The server is not available.\n";
