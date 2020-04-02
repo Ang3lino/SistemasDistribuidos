@@ -40,7 +40,11 @@ void DatagramSocket::unbind() {
 }
 
 int DatagramSocket::receive(DatagramPacket &p) {
+	#ifdef __linux__
+	socklen_t len = sizeof(remoteAddress);
+	#else 
 	int len = sizeof(remoteAddress);
+	#endif
 	int n = recvfrom(s, p.getData(), p.getLength(), 0, (struct sockaddr *) &remoteAddress, &len);
 	p.setPort(ntohs(remoteAddress.sin_port));
 	p.setAddress(std::string(inet_ntoa(remoteAddress.sin_addr)));
@@ -63,8 +67,14 @@ void DatagramSocket::setTimeout(long secs, long u_secs) {
 }
 
 int DatagramSocket::receiveTimeout(DatagramPacket &p, time_t secs, time_t u_secs) {
+	// u_long mode = 0;
+	// ioctlsocket(s, FIONBIO, &mode);
     setTimeout(secs, u_secs);  
-    int len = sizeof(remoteAddress);
+	#ifdef __linux__
+	socklen_t len = sizeof(remoteAddress);
+	#else 
+	int len = sizeof(remoteAddress);
+	#endif
     int n = recvfrom(s, p.getData(), p.getLength(), 0, (struct sockaddr *) &remoteAddress, &len);
     if (n < 0) {  // deal with errors 
         #ifdef _WIN32
@@ -73,9 +83,8 @@ int DatagramSocket::receiveTimeout(DatagramPacket &p, time_t secs, time_t u_secs
         if (errno == EAGAIN || errno == EWOULDBLOCK)
         #endif
             std::cout << "Timeout!" << std::endl;
-        else {
-            std::cerr << "Error in recvfrom. " << WSAGetLastError() << std::endl;
-		}
+        else 
+            std::cerr << "Error in recvfrom. " << std::endl;
         return -1;
     }
     p.setPort(remoteAddress.sin_port);  
