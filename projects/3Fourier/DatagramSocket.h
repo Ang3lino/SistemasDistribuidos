@@ -14,11 +14,11 @@
 #endif
 
 #include <iostream>
+
 #include <strings.h>
 #include <unistd.h>
-#include <sys/time.h>
-
 #include <errno.h>
+#include <sys/time.h>
 #include "DatagramPacket.h"
 
 class DatagramSocket {

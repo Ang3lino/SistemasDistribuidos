@@ -26,7 +26,7 @@ char *Request::doOperation(OperationId op_id, char *args, size_t arglen) {
 }
 
 char *Request::doOperation(string &ip, int port, OperationId op_id, char *args, size_t arglen, time_t secs, long u_secs) {
-    Message *msg = new Message( MessageType::REQUEST, 1, op_id, arglen, args);
+    Message *msg = new Message(MessageType::REQUEST, 1, op_id, arglen, args);
     if (msg->operationId == OperationId::SUM) {
         DatagramPacket p((char *) msg, sizeof(Message), ip, port);
         Message *buff = new Message;
@@ -39,7 +39,7 @@ char *Request::doOperation(string &ip, int port, OperationId op_id, char *args, 
             n = s.receiveTimeout(response, secs, u_secs);
         }
         if (n < 0) 
-            throw "The server is not available.\n";
+            throw std::string("The server is not available.\n");
         return buff->arguments;
     }
     return NULL;  // No match for que operation id requested

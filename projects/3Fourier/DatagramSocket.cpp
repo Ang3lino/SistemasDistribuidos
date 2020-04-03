@@ -78,16 +78,18 @@ int DatagramSocket::receiveTimeout(DatagramPacket &p, time_t secs, time_t u_secs
     int n = recvfrom(s, p.getData(), p.getLength(), 0, (struct sockaddr *) &remoteAddress, &len);
     if (n < 0) {  // deal with errors 
         #ifdef _WIN32
-        if (WSAGetLastError() == WSAETIMEDOUT) 
+		int errcode = WSAGetLastError();
+        if (errcode == WSAETIMEDOUT) 
         #else
-        if (errno == EAGAIN || errno == EWOULDBLOCK)
+		int errcode = errno;
+        if (errcode == EAGAIN || errcode == EWOULDBLOCK)
         #endif
             std::cout << "Timeout!" << std::endl;
         else 
-            std::cerr << "Error in recvfrom. " << std::endl;
+            std::cerr << "Error in recvfrom, error code " << errcode  << std::endl;
         return -1;
     }
-    p.setPort(remoteAddress.sin_port);  
+    p.setPort(ntohs(remoteAddress.sin_port));  
     p.setAddress(string(inet_ntoa(remoteAddress.sin_addr)));
     p.setLength(n);
     return n;

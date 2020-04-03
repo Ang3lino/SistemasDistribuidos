@@ -13,7 +13,6 @@ Message *Reply::getRequest(void) {
     sock->receive(*p);
     addr = p->getAddress();
     port = p->getPort();
-    cout << *msg << endl;
     return (Message *) p->getData();
 }
 
