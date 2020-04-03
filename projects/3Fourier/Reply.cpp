@@ -2,7 +2,6 @@
 #include "Reply.h"
 
 
-
 Reply::Reply(int port) {
     sock = new DatagramSocket(port);
 }
@@ -28,5 +27,6 @@ Message *newMessage(MessageType type, int request, OperationId op, char *args, i
 void Reply::sendReply(char *reply, size_t arglen, OperationId operation) {
     Message *buff = newMessage(MessageType::REPLY, 1, operation, reply, arglen);
     DatagramPacket response((char *) buff, sizeof(Message), addr, port);
+    // std::this_thread::sleep_for(std::chrono::milliseconds(3000));
     sock->send(response);
 }

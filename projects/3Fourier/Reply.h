@@ -1,8 +1,12 @@
 #ifndef __REPLY_H__
 #define __REPLY_H__
 
+#include <chrono>
+#include <thread>
+
 #include "DatagramSocket.h"
 #include "Message.h"
+
 
 class Reply{
 public:
@@ -14,5 +18,6 @@ private:
     string addr;
     int port;
 };
+
 
 #endif
