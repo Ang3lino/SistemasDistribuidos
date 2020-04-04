@@ -7,8 +7,8 @@
 #include <cstring>
 
 
-const int MAX_UDP_LENGTH = 4000;
-enum OperationId: int { SUM=1, UNKNOWN };
+const int MAX_UDP_LENGTH = 4096;
+enum OperationId: int { UNKNOWN=-1, DUMMY=3, SUM=1 };
 enum MessageType: int { REQUEST=1, REPLY };
 
 struct Message {

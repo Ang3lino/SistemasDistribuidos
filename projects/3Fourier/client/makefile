@@ -16,6 +16,8 @@ client_win: DatagramPacket.o DatagramSocket.o Message.o Request.o
 server_win: DatagramPacket.o DatagramSocket.o Message.o Reply.o
 	g++ -g3 -Wall DatagramPacket.o DatagramSocket.o Message.o Reply.o   server.cpp -o server -lwsock32
 
+test: DatagramPacket.o DatagramSocket.o Message.o Request.o
+	g++ -g3 -Wall DatagramPacket.o DatagramSocket.o Message.o Request.o test.cpp -o test -lwsock32
 client: DatagramPacket.o DatagramSocket.o Message.o Request.o
 	g++ -g3 -Wall DatagramPacket.o DatagramSocket.o Message.o Request.o client.cpp -o client
 server: DatagramPacket.o DatagramSocket.o Message.o Reply.o

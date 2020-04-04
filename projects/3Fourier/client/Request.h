@@ -4,6 +4,7 @@
 
 #include "DatagramSocket.h"
 #include "Message.h"
+#include <limits.h>
 
 
 class Request {
