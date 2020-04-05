@@ -66,7 +66,7 @@ public class Replier extends Thread {
     public void run()  {
         byte[] request = getRequest();
         printBytes(request);
-        Message reply = new Message(Message.REPLY, 511, Message.DUMMY);
+        Message reply = new Message(Message.REPLY, 2147483647, Message.DUMMY);
         byte[] response = reply.serialize();
         DatagramPacket pack = new DatagramPacket(response, response.length, remoteAddress, port);
         try {

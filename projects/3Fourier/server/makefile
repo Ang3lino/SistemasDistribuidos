@@ -9,3 +9,4 @@ Replier.class: Replier.java
 	javac Replier.java
 clear:
 	del *.class 
+	del *~
