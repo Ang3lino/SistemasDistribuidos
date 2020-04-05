@@ -22,7 +22,11 @@ public class Server extends Application {
         return series;
     }
 
-    public void updateChart(XYChart.Series<Float, Float> series) {
+    public void addPoints(XYChart.Series<Float, Float> holder, ArrayList<Float> x, ArrayList<Float> y) {
+
+    }
+
+    public void updateChart(XYChart.Series<Float, Float> holder) {
         ArrayList<XYChart.Data<Float, Float>> toRemove = new ArrayList<>();
         for (int i = 0; i < 100; ++i) {
             final float p = (float) i;
@@ -34,12 +38,12 @@ public class Server extends Application {
                 System.out.println(e);
             }
             XYChart.Data<Float, Float> data = new XYChart.Data<Float, Float>(p, q);
-            Platform.runLater(() -> series.getData().add(data)); 
+            Platform.runLater(() -> holder.getData().add(data)); 
             toRemove.add(data);
         }
         while (!toRemove.isEmpty()) {
             XYChart.Data<Float, Float> data = toRemove.get(0);
-            Platform.runLater(() -> series.getData().remove(data)); 
+            Platform.runLater(() -> holder.getData().remove(data)); 
             try {
                 TimeUnit.MILLISECONDS.sleep(100);
             } catch (InterruptedException e) {

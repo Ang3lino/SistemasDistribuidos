@@ -1,0 +1,8 @@
+
+server: Server.class
+	java Server
+
+Server.class: Server.java
+	javac Server.java
+
+
