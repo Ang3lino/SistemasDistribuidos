@@ -53,20 +53,8 @@ public class Replier extends Thread {
         return packet.getData();
     }
 
-    public void sendReply(byte[] reply) {
-        buf = reply;
-        DatagramPacket packet = new DatagramPacket(buf, buf.length, remoteAddress, port);
-        byte[] bytes = packet.getData();
-        printBytes(bytes);
-        Message msg = new Message(bytes);
-        // socket.send(packet);
-        socket.close();
-    }
-
-    public void run()  {
-        byte[] request = getRequest();
-        printBytes(request);
-        Message reply = new Message(Message.REPLY, 2147483647, Message.DUMMY);
+    public void sendReply(int replyType, int requestId, int operationId) {
+        Message reply = new Message(replyType, requestId, operationId);
         byte[] response = reply.serialize();
         DatagramPacket pack = new DatagramPacket(response, response.length, remoteAddress, port);
         try {
@@ -74,7 +62,17 @@ public class Replier extends Thread {
         } catch (IOException e) {
             System.out.println(e);
         }
+        // close();
+    }
+
+    public void close() {
         socket.close();
+    }
+
+    public void run()  {
+        byte[] request = getRequest();
+        printBytes(request);
+        sendReply(Message.REPLY, 2147483647, Message.DUMMY);
     }
 
     public static void main(String[] args) {
