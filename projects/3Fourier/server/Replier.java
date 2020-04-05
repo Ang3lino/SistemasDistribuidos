@@ -8,7 +8,6 @@ import java.nio.ByteOrder;
 
 
 public class Replier extends Thread {
- 
     private DatagramSocket socket;
     private byte[] buf = new byte[4112];
     private final int port = 5400;
