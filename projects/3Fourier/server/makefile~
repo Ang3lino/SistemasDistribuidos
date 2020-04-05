@@ -5,5 +5,4 @@ server: Server.class
 Server.class: Server.java
 	javac Server.java
 
-clear:
-	del *.class 
+

@@ -14,7 +14,7 @@ import javafx.stage.Stage;
 
 public class Server extends Application { 
     public XYChart.Series<Float, Float> getSeries(ArrayList<Float> x, ArrayList<Float> y) {
-        //Configuring Series and adding data to the series    
+        //  Configuring Series and adding data to the series    
         XYChart.Series<Float, Float> series = new XYChart.Series<Float, Float>();  
         for (int i = 0; i < x.size(); ++i) {
             series.getData().add(new XYChart.Data<Float, Float>(x.get(i), y.get(i)));  
@@ -22,40 +22,44 @@ public class Server extends Application {
         return series;
     }
 
-    public void addPoints(XYChart.Series<Float, Float> holder, ArrayList<Float> x, ArrayList<Float> y) {
-
-    }
-
-    public void updateChart(XYChart.Series<Float, Float> holder) {
-        ArrayList<XYChart.Data<Float, Float>> toRemove = new ArrayList<>();
-        for (int i = 0; i < 100; ++i) {
-            final float p = (float) i;
-            final float q = (float) i;
-            System.out.printf("Passing %f %f\n", p,q);
+    public void addPoints(XYChart.Series<Float, Float> holder, ArrayList<XYChart.Data<Float, Float>> points) {
+        for (int i = 0; i < points.size(); ++i) {
             try {
-                TimeUnit.MILLISECONDS.sleep(100);
+                TimeUnit.MILLISECONDS.sleep(10);
             } catch (InterruptedException e) {
                 System.out.println(e);
             }
-            XYChart.Data<Float, Float> data = new XYChart.Data<Float, Float>(p, q);
+            XYChart.Data<Float, Float> data = points.get(i);
             Platform.runLater(() -> holder.getData().add(data)); 
-            toRemove.add(data);
         }
-        while (!toRemove.isEmpty()) {
-            XYChart.Data<Float, Float> data = toRemove.get(0);
+    }
+
+    public void removePoints(XYChart.Series<Float, Float> holder, ArrayList<XYChart.Data<Float, Float>> points) {
+        int counter = points.size();
+        while (--counter >= 0) {
+            final XYChart.Data<Float, Float> data = points.get(counter);
             Platform.runLater(() -> holder.getData().remove(data)); 
             try {
                 TimeUnit.MILLISECONDS.sleep(100);
             } catch (InterruptedException e) {
                 System.out.println(e);
             }
-            toRemove.remove(0);
         }
+    }
+
+    public void updateChart(XYChart.Series<Float, Float> holder) {
+        ArrayList<XYChart.Data<Float, Float>> points = new ArrayList<>();
+        for (int i = 0; i < 100; ++i) {
+            final float p = (float) i, q = (float) i;
+            System.out.printf("Passing %f %f\n", p,q);
+            points.add(new XYChart.Data<Float, Float>(p, q));
+        }
+        addPoints(holder, points);
+        removePoints(holder, points);
     }
   
     @Override  
     public void start(Stage primaryStage) throws Exception {  
-        // TODO Auto-generated method stub  
         //Configuring Xaxis and Yaxis  
         int xMin = 0, xMax = 100;
         NumberAxis xaxis = new NumberAxis(xMin, xMax, 10);  
@@ -79,7 +83,11 @@ public class Server extends Application {
         s.getData().add(series);  
 
         Thread t = new Thread(() -> updateChart(series));
-          
+        configGroupAndScene(primaryStage, s);
+        t.start();
+    }  
+
+    public void configGroupAndScene(Stage primaryStage, ScatterChart s) {
         //Configuring group and Scene   
         double horizontalSize = 800, verticalSize = 600;
         Group root = new Group();  
@@ -90,10 +98,7 @@ public class Server extends Application {
         primaryStage.setScene(scene);  
         primaryStage.setTitle("ScatterChart Example");  
         primaryStage.show();      
-          
-          
-        t.start();
-    }  
+    }
 
     public static void main(String[] args) {  
         launch(args);  
