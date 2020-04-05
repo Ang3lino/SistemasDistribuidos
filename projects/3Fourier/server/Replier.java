@@ -9,11 +9,15 @@ import java.nio.ByteOrder;
 
 public class Replier extends Thread {
     private DatagramSocket socket;
-    private byte[] buf = new byte[Message.MESSAGE_SIZE];
-    private final int port = 5400;
+    private byte[] buf;
+    private int port;
+    InetAddress remoteAddress;
+
  
     public Replier () {
         try {
+            buf = new byte[Message.MESSAGE_SIZE];
+            port = 5400;
             socket = new DatagramSocket(port);
         } catch (SocketException e) {
             System.out.println(e);
@@ -36,7 +40,7 @@ public class Replier extends Thread {
         System.out.println();
     }
 
-    public void run()  {
+    public byte[] getRequest() {
         DatagramPacket packet = new DatagramPacket(buf, buf.length);
         System.out.println("Server ON, waiting for a request\n");
         try {
@@ -44,14 +48,32 @@ public class Replier extends Thread {
         } catch (IOException e) {
             System.out.println(e);
         }
-            
-        InetAddress address = packet.getAddress();
-        int port = packet.getPort();
-        packet = new DatagramPacket(buf, buf.length, address, port);
+        remoteAddress = packet.getAddress();
+        port = packet.getPort();
+        return packet.getData();
+    }
+
+    public void sendReply(byte[] reply) {
+        buf = reply;
+        DatagramPacket packet = new DatagramPacket(buf, buf.length, remoteAddress, port);
         byte[] bytes = packet.getData();
         printBytes(bytes);
         Message msg = new Message(bytes);
         // socket.send(packet);
+        socket.close();
+    }
+
+    public void run()  {
+        byte[] request = getRequest();
+        printBytes(request);
+        Message reply = new Message(Message.REPLY, 511, Message.DUMMY);
+        byte[] response = reply.serialize();
+        DatagramPacket pack = new DatagramPacket(response, response.length, remoteAddress, port);
+        try {
+            socket.send(pack);
+        } catch (IOException e) {
+            System.out.println(e);
+        }
         socket.close();
     }
 

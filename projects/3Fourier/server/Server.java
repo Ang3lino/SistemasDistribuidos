@@ -82,8 +82,8 @@ public class Server extends Application {
         //Adding series to the ScatterChart  
         s.getData().add(series);  
 
-        Thread t = new Thread(() -> updateChart(series));
         configGroupAndScene(primaryStage, s);
+        Thread t = new Thread(() -> updateChart(series));
         t.start();
     }  
 

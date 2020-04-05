@@ -42,31 +42,28 @@ void print_bytes(char *bytes, unsigned len) {
     }
 }
 
+
 int main(int argc, char const *argv[]) {
     float src[1024];
     for (int i = 0  ; i < 512 ; ++i) src[i] = (float) i;
     for (int i = 512; i < 1024; ++i) src[i] = (float) 2*i;
-    Message m;
+    Message m(MessageType::REQUEST, 1023, OperationId::DUMMY, sizeof(src), (char *) src);
     DatagramSocket s;
-
-    m.messageType = MessageType::REQUEST;
-    m.requestId = 1023;
-    m.operationId = OperationId::DUMMY;
-    m.argumentLength = sizeof(src);
-    memcpy((char *) m.arguments, (char *) src, m.argumentLength);
     unsigned len = sizeof(Message);
     char bytes[len];
     serialize(&m, bytes);
 
-
     const int port = 5400;
     DatagramPacket p(bytes, len, "127.0.0.1", port);
     s.send(p);
-
     print_bytes(bytes, len);
 
+    int message_length = sizeof(Message);
+    char buff[message_length];
+    DatagramPacket response(buff, message_length);
+    int n = s.receive(response);
+    print_bytes(buff, message_length);
+
     cout << endl;
-    size_of_types();
-    for (int i = 0; i < 512; ++i) printf("%f ", src[i]);
     return 0;
 }
