@@ -1,6 +1,7 @@
 #include <iostream>
 #include "Message.h"
 #include "DatagramSocket.h"
+#include "ByteBuffer.h"
 
 using namespace std;
 
@@ -40,6 +41,7 @@ void print_bytes(char *bytes, unsigned len) {
             printf("\t");
         }
     }
+    std::cout << std::endl;
 }
 
 
@@ -63,6 +65,13 @@ int main(int argc, char const *argv[]) {
     DatagramPacket response(buff, message_length);
     int n = s.receive(response);
     print_bytes(buff, message_length);
+    ByteBuffer bb(buff, message_length);
+    cout << bb.readInt() << endl;
+    cout << bb.readInt() << endl;
+    cout << bb.readInt() << endl;
+    cout << bb.readInt() << endl;
+    // Message resp((MessageType) bb.readInt(), bb.readInt(), (OperationId) bb.readInt(), bb.readInt(), (char *) NULL);
+    // cout << resp << endl;
 
     cout << endl;
     return 0;
