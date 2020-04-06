@@ -40,6 +40,8 @@ void DatagramSocket::unbind() {
 }
 
 int DatagramSocket::receive(DatagramPacket &p) {
+	if (timeout_set) 
+		return receiveTimeout(p, timeout.tv_sec, timeout.tv_usec);
 	#ifdef __linux__
 	socklen_t len = sizeof(remoteAddress);
 	#else 

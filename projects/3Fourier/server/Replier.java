@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 
-public class Replier extends Thread {
+public class Replier {
     private DatagramSocket socket;
     private byte[] buf;
     private int port;
@@ -53,30 +53,21 @@ public class Replier extends Thread {
         return packet.getData();
     }
 
-    public void sendReply(int replyType, int requestId, int operationId) {
+    public boolean sendReply(int replyType, int requestId, int operationId) {
         Message reply = new Message(replyType, requestId, operationId);
         byte[] response = reply.serialize();
         DatagramPacket pack = new DatagramPacket(response, response.length, remoteAddress, port);
         try {
             socket.send(pack);
+            return true;
         } catch (IOException e) {
             System.out.println(e);
+            return false;
         }
         // close();
     }
 
     public void close() {
         socket.close();
-    }
-
-    public void run()  {
-        byte[] request = getRequest();
-        printBytes(request);
-        sendReply(Message.REPLY, 2147483647, Message.DUMMY);
-    }
-
-    public static void main(String[] args) {
-        Replier replier = new Replier();
-        replier.start();
     }
 }

@@ -8,7 +8,7 @@
 
 
 const int MAX_UDP_LENGTH = 4096;
-enum OperationId: int { UNKNOWN=-1, DUMMY=3, SUM=1 };
+enum OperationId: int { UNKNOWN=-1, SUM=1, PLOT, DUMMY };
 enum MessageType: int { REQUEST=1, REPLY };
 
 struct Message {

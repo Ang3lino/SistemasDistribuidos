@@ -1,9 +1,19 @@
 #include <iostream>
+#include <vector>
+#include <algorithm> 
+
+#define _USE_MATH_DEFINES  // use M_PI
+#include <math.h>
+
 #include "Message.h"
 #include "DatagramSocket.h"
 #include "ByteBuffer.h"
 
 using namespace std;
+
+const int ARG_LEN = 4096;
+const int PORT = 5400;
+const int MESSAGE_LENGTH = sizeof(Message);
 
 
 void size_of_types() {
@@ -17,10 +27,14 @@ void size_of_types() {
 
 void serialize(Message *msgPacket, char *data) {
     int *q = (int*) data;    
-    *q = msgPacket->messageType;       q++;    
-    *q = msgPacket->requestId;   q++;    
-    *q = msgPacket->operationId;     q++;
-    *q = msgPacket->argumentLength;     q++;
+    *q = msgPacket->messageType;       
+    q++;    
+    *q = msgPacket->requestId;   
+    q++;    
+    *q = msgPacket->operationId;     
+    q++;
+    *q = msgPacket->argumentLength;     
+    q++;
     char *p = (char*) q;
     for (int i = 0; i < msgPacket->argumentLength; ++i) {
         *p = msgPacket->arguments[i];
@@ -28,10 +42,10 @@ void serialize(Message *msgPacket, char *data) {
     }
 }
 
-void print_bytes(char *bytes, unsigned len) {
+void print_bytes(char *bytes, unsigned a, unsigned b) {
     int j = 0, count = 0;
     printf("\n%04d: ", ++count);
-    for (unsigned i = 0; i < len; ++i) {
+    for (unsigned i = a; i < b; ++i) {
         printf("%02x ", (unsigned char) bytes[i]);
         if (++j == 16) {
             printf("\n%04d: ", ++count);
@@ -44,35 +58,94 @@ void print_bytes(char *bytes, unsigned len) {
     std::cout << std::endl;
 }
 
+template<typename T>
+std::vector<double> linspace(T start_in, T end_in, int num_in) {
+    std::vector<double> linspaced;
+    double start = static_cast<double>(start_in);
+    double end = static_cast<double>(end_in);
+    double num = static_cast<double>(num_in);
+    if (num == 0) { return linspaced; }
+    if (num == 1) {
+        linspaced.push_back(start);
+        return linspaced;
+    }
+    double delta = (end - start) / (num - 1);
+    for (int i = 0; i < num-1; ++i) {
+          linspaced.push_back(start + delta * i);
+    }
+    linspaced.push_back(end); // I want to ensure that start and end
+                            // are exactly the same as the input
+    return linspaced;
+}
 
-int main(int argc, char const *argv[]) {
-    float src[1024];
-    for (int i = 0  ; i < 512 ; ++i) src[i] = (float) i;
-    for (int i = 512; i < 1024; ++i) src[i] = (float) 2*i;
-    Message m(MessageType::REQUEST, 1023, OperationId::DUMMY, sizeof(src), (char *) src);
-    DatagramSocket s;
+float sampling(float x) {
+    if (x == 0) return 1.0;
+    return sin(x) / x;
+}
+
+// T = 64, A = 16, d = 32
+double fourier_coeff(double t, unsigned n) {
+    double p = (32 / (M_PI * n)) * sampling(M_PI * n / 2) - 1;
+    double q = sin((M_PI * n / 32) * t);
+    return p*q;
+}
+
+double fourier_sum(double t, unsigned n) {
+    double acc = 0;
+    for (unsigned i = 1; i <= n; ++i)
+        acc += fourier_coeff(t, i);
+    return acc;
+}
+
+void print_args(float *args) {
+    for (int i = 0; i < 512; ++i) 
+        printf("%f, %f\n", args[i], args[i + 512]);
+}
+
+void sendPoints(Message &m, DatagramSocket &s) { 
     unsigned len = sizeof(Message);
     char bytes[len];
     serialize(&m, bytes);
-
-    const int port = 5400;
-    DatagramPacket p(bytes, len, "127.0.0.1", port);
+    DatagramPacket p(bytes, len, "127.0.0.1", PORT);
     s.send(p);
-    print_bytes(bytes, len);
+    cout << "Bytes sent: " << endl;
+    // print_bytes(bytes, 0, 32);
+}
 
-    int message_length = sizeof(Message);
-    char buff[message_length];
-    DatagramPacket response(buff, message_length);
-    int n = s.receive(response);
-    print_bytes(buff, message_length);
-    ByteBuffer bb(buff, message_length);
-    cout << bb.readInt() << endl;
-    cout << bb.readInt() << endl;
-    cout << bb.readInt() << endl;
-    cout << bb.readInt() << endl;
-    // Message resp((MessageType) bb.readInt(), bb.readInt(), (OperationId) bb.readInt(), bb.readInt(), (char *) NULL);
-    // cout << resp << endl;
+Message *receiveAck(DatagramSocket &s) {
+    char msg_serialized[MESSAGE_LENGTH];
+    DatagramPacket response(msg_serialized, MESSAGE_LENGTH);
+    s.receive(response);
+    print_bytes(msg_serialized, 0, 32);
+    ByteBuffer bb(msg_serialized, MESSAGE_LENGTH);
+    Message *resp = new Message((MessageType) bb.readInt(), bb.readInt(), (OperationId) bb.readInt(), bb.readInt(), (char *) NULL);
+    cout << "\nMessage received: \n";
+    cout << *resp << endl;
+    return resp; 
+}
 
-    cout << endl;
+
+int main(int argc, char const *argv[]) {
+    int x_len = 512, period = 64, send_count = 32, n = 1; 
+    float src[1024];
+    vector<double> x_lin = linspace(-(period >> 1), period + (period >> 1), 512);
+    DatagramSocket s;
+    // s.setTimeout(30, 0);
+
+    fill(src, src + x_len * 2, 0); //  memset(&src[0], 0, sizeof(src));
+    for (unsigned i = 0; i < x_lin.size(); ++i) src[i] = (float) x_lin[i];
+    while (n <= send_count) {
+        for (int j = 0; j < x_len; ++j) src[x_len + j] += (float) fourier_coeff(src[j], n);
+        Message m(MessageType::REQUEST, n, OperationId::PLOT, sizeof(src), (char *) src);
+        print_args(src);
+    unsigned len = sizeof(Message);
+    char bytes[len];
+    serialize(&m, bytes);
+    DatagramPacket p(bytes, len, "127.0.0.1", PORT);
+    s.send(p);
+    cout << "Bytes sent: " << endl;
+        // Message *resp = receiveAck(s);
+        // n = resp->requestId;
+    }
     return 0;
 }

@@ -1,4 +1,6 @@
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
@@ -40,43 +42,62 @@ public class Server extends Application {
             final XYChart.Data<Float, Float> data = points.get(counter);
             Platform.runLater(() -> holder.getData().remove(data)); 
             try {
-                TimeUnit.MILLISECONDS.sleep(100);
+                TimeUnit.MILLISECONDS.sleep(10);
             } catch (InterruptedException e) {
                 System.out.println(e);
             }
         }
     }
 
+    public void printArgs(float[] x, float[] y) {
+        for (int i = 0; i < 512; ++i)
+            System.out.printf("%f %f \n", x[i], y[i]);
+    }
+
+    // controller
     public void updateChart(XYChart.Series<Float, Float> holder) {
         ArrayList<XYChart.Data<Float, Float>> points = new ArrayList<>();
-        for (int i = 0; i < 100; ++i) {
-            final float p = (float) i, q = (float) i;
-            System.out.printf("Passing %f %f\n", p,q);
-            points.add(new XYChart.Data<Float, Float>(p, q));
+        Replier replier = new Replier();
+        int plotTimes = 10;
+        while (--plotTimes >= 0) {
+            byte[] request = replier.getRequest();
+            Message messageRequest = new Message(request);
+            ByteBuffer bb = ByteBuffer.wrap(messageRequest.data);
+            bb.order(ByteOrder.LITTLE_ENDIAN);
+            float x[] = new float[512], y[] = new float[512];
+            for (int i = 0; i < 512; ++i) x[i] = bb.getFloat();
+            for (int i = 0; i < 512; ++i) y[i] = bb.getFloat();
+            for (int i = 0; i < 512; ++i) points.add(new XYChart.Data<Float, Float>(x[i], y[i]));
+            printArgs(x, y);
+            Thread t = new Thread(() -> {
+                addPoints(holder, points);
+                removePoints(holder, points);
+            });
+            t.start();
+            replier.sendReply(Message.REPLY, messageRequest.requestId + 1, Message.DUMMY);
+            try {
+                t.join();
+            } catch (InterruptedException e) {
+                System.out.println(e);
+            }
         }
-        addPoints(holder, points);
-        removePoints(holder, points);
     }
   
     @Override  
     public void start(Stage primaryStage) throws Exception {  
-        //Configuring Xaxis and Yaxis  
-        int xMin = 0, xMax = 100;
-        NumberAxis xaxis = new NumberAxis(xMin, xMax, 10);  
-        NumberAxis yaxis = new NumberAxis(xMin, xMax, 10);  
-        xaxis.setLabel("Weight");  
-        yaxis.setLabel("Height");  
+        // Configuring Xaxis and Yaxis  
+        int xMin = -32, xMax = 96;
+        int yMin = -16, yMax = 16;
+        NumberAxis xaxis = new NumberAxis(xMin, xMax, 2);  
+        NumberAxis yaxis = new NumberAxis(yMin, yMax, 2);  
+        xaxis.setLabel("X");  
+        yaxis.setLabel("Y");  
           
-        //Configuring ScatterChart    
+        // Configuring ScatterChart    
         ScatterChart s = new ScatterChart(xaxis, yaxis);  
-        s.setTitle("Perfect height according to your weight");  
+        s.setTitle("Fourier serie");  
 
-        ArrayList<Float> x = new ArrayList<>(), y = new ArrayList<>();
-        for (int i = xMin; i < xMax; ++i) {
-            x.add((float) i);
-            y.add((float) 2*i);
-        }
-        XYChart.Series series = getSeries(x, y);
+        XYChart.Series<Float, Float> series = new XYChart.Series<Float, Float>();  
         series.setName("Height value");  
           
         //Adding series to the ScatterChart  
