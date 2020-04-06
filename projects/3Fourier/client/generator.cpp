@@ -124,28 +124,29 @@ Message *receiveAck(DatagramSocket &s) {
     return resp; 
 }
 
-
 int main(int argc, char const *argv[]) {
     int x_len = 512, period = 64, send_count = 32, n = 1; 
     float src[1024];
     vector<double> x_lin = linspace(-(period >> 1), period + (period >> 1), 512);
+    unsigned len = sizeof(Message);
+    char bytes[len];
     DatagramSocket s;
     // s.setTimeout(30, 0);
 
     fill(src, src + x_len * 2, 0); //  memset(&src[0], 0, sizeof(src));
     for (unsigned i = 0; i < x_lin.size(); ++i) src[i] = (float) x_lin[i];
+    Message m (MessageType::REQUEST, n, OperationId::PLOT, sizeof(src), (char *) src);
     while (n <= send_count) {
         for (int j = 0; j < x_len; ++j) src[x_len + j] += (float) fourier_coeff(src[j], n);
-        Message m(MessageType::REQUEST, n, OperationId::PLOT, sizeof(src), (char *) src);
         print_args(src);
-    unsigned len = sizeof(Message);
-    char bytes[len];
-    serialize(&m, bytes);
-    DatagramPacket p(bytes, len, "127.0.0.1", PORT);
-    s.send(p);
-    cout << "Bytes sent: " << endl;
-        // Message *resp = receiveAck(s);
-        // n = resp->requestId;
+
+        serialize(&m, bytes);
+        DatagramPacket p(bytes, len, "127.0.0.1", PORT);
+        s.send(p);
+        cout << "Bytes sent: " << endl;
+            // Message *resp = receiveAck(s);
+            // n = resp->requestId;
+        cout << "Hola bb: " << endl;
     }
     return 0;
 }

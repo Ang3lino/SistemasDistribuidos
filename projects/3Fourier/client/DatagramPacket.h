@@ -14,7 +14,6 @@ public:
     DatagramPacket(char* , size_t, const string &, uint16_t );
     DatagramPacket(char* , size_t);
     DatagramPacket();
-    ~DatagramPacket();
     string getAddress();
     char *getData();
     size_t getLength();

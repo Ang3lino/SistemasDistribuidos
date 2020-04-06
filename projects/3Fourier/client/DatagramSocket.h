@@ -3,7 +3,7 @@
 #define __DatagramSocket_H__
 
 
-#ifdef linux
+#ifdef __linux__
 	#include <sys/socket.h>
 	#include <netinet/in.h>
 	#include <arpa/inet.h>
@@ -43,7 +43,7 @@ private:
 
 	struct timeval timeout;
 	bool timeout_set;
-	#ifdef linux
+	#ifdef __linux__
 		int s;
 	#else
 		SOCKET s;

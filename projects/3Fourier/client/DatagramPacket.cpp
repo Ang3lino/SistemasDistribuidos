@@ -11,8 +11,6 @@ DatagramPacket::DatagramPacket(char* buf, size_t len, const string & addr, uint1
 	setPort(iport);
 }
 
-DatagramPacket::~DatagramPacket() { delete data; }
-
 string DatagramPacket::getAddress() { return ip; }
 
 uint16_t DatagramPacket::getPort() { return port; }

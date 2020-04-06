@@ -30,7 +30,7 @@ DatagramSocket::~DatagramSocket() {
 }
 
 void DatagramSocket::unbind() {
-	#ifdef linux
+	#ifdef __linux__
 		close(s);
 		s = 0;
 	#else 

@@ -1,13 +1,18 @@
-
-# v_client = client
-# v_server = server
-v_client = client_win
-v_server = server_win
+ 
+ifeq ($(OS),Windows_NT)
+	v_client = client_win
+	v_server = server_win
+	flags = -lwsock32
+else 
+	v_client = client
+	v_server = server
+	flags = 
+endif
 
 # all: $(v_client) $(v_server)
 
 generator: DatagramPacket.o DatagramSocket.o Message.o ByteBuffer.o 
-	g++ -g3 -Wall DatagramPacket.o DatagramSocket.o Message.o ByteBuffer.o generator.cpp -o generator -lwsock32
+	g++ -g3 -Wall DatagramPacket.o DatagramSocket.o Message.o ByteBuffer.o generator.cpp -o generator $(flags)
 
 client_win: DatagramPacket.o DatagramSocket.o Message.o Request.o
 	g++ -g3 -Wall DatagramPacket.o DatagramSocket.o Message.o Request.o client.cpp -o client -lwsock32
@@ -32,8 +37,10 @@ Reply.o: Reply.cpp
 Request.o: Request.cpp
 	g++ -c -g3 -Wall Request.cpp 
 
-clear:
+clear_lin:
+	rm -rf *.o *.exe client server
+
+clear_win:
 	del *.o 
 	del *.exe 
 	del *~ 
-	# rm -rf *.o *.exe client server
