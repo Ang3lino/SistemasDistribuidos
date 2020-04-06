@@ -2,9 +2,9 @@
 #ifndef __bytebuffer__
 #define __bytebuffer__ 
 
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
-#include <iostream>
 
 class ByteBuffer {
 public:
@@ -16,7 +16,6 @@ public:
     // void order();
 
     static ByteBuffer wrap(char *, int);
-    static const int BIG_ENDIAN = 0, LITLE_ENDIAN = 1;
 
     // ~ByteBuffer();
 private:

@@ -6,7 +6,7 @@ ByteBuffer::ByteBuffer(char *src, int src_len) {
     position = 0;
     limit = src_len;
     capacity = src_len;
-    order = ByteBuffer::BIG_ENDIAN;
+    order = 0;
 }
 
 int ByteBuffer::readInt() {
