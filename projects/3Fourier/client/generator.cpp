@@ -44,7 +44,7 @@ void serialize(Message *msgPacket, char *data) {
 
 void print_bytes(char *bytes, unsigned a, unsigned b) {
     int j = 0, count = 0;
-    printf("\n%04d: ", ++count);
+    printf("\n%04d:   ", ++count);
     for (unsigned i = a; i < b; ++i) {
         printf("%02x ", (unsigned char) bytes[i]);
         if (++j == 16) {
@@ -103,50 +103,53 @@ void print_args(float *args) {
 }
 
 void sendPoints(Message &m, DatagramSocket &s) { 
-    unsigned len = sizeof(Message);
-    char bytes[len];
+    char bytes[MESSAGE_LENGTH];
     serialize(&m, bytes);
-    DatagramPacket p(bytes, len, "127.0.0.1", PORT);
+    DatagramPacket p(bytes, MESSAGE_LENGTH, "127.0.0.1", PORT);
     s.send(p);
     cout << "Bytes sent: " << endl;
-    // print_bytes(bytes, 0, 32);
+    print_bytes(bytes, 0, 32);
 }
 
-Message *receiveAck(DatagramSocket &s) {
+void receiveAck(DatagramSocket &s, int &n) {
     char msg_serialized[MESSAGE_LENGTH];
     DatagramPacket response(msg_serialized, MESSAGE_LENGTH);
-    s.receive(response);
+    cout << "Waiting for a response...\n ";
+    if (s.receive(response) == -1) {
+        cout << "[!] Error with ack\n";
+        return;
+    }
     print_bytes(msg_serialized, 0, 32);
     ByteBuffer bb(msg_serialized, MESSAGE_LENGTH);
-    Message *resp = new Message((MessageType) bb.readInt(), bb.readInt(), (OperationId) bb.readInt(), bb.readInt(), (char *) NULL);
+    Message resp((MessageType) bb.readInt(), bb.readInt(), (OperationId) bb.readInt(), bb.readInt(), (char *) NULL);
     cout << "\nMessage received: \n";
-    cout << *resp << endl;
-    return resp; 
+    cout << resp << endl;
+    n = resp.requestId;
 }
 
 int main(int argc, char const *argv[]) {
-    int x_len = 512, period = 64, send_count = 32, n = 1; 
-    float src[1024];
+    int x_len = 512, period = 64, send_count = 32, n = 1;  // 
+    float src[1024]; // buffer, 4096 = 1024*sizeof(float)
     vector<double> x_lin = linspace(-(period >> 1), period + (period >> 1), 512);
-    unsigned len = sizeof(Message);
-    char bytes[len];
+    char bytes[MESSAGE_LENGTH];
     DatagramSocket s;
-    // s.setTimeout(30, 0);
+    s.setTimeout(45, 0);
 
     fill(src, src + x_len * 2, 0); //  memset(&src[0], 0, sizeof(src));
     for (unsigned i = 0; i < x_lin.size(); ++i) src[i] = (float) x_lin[i];
-    Message m (MessageType::REQUEST, n, OperationId::PLOT, sizeof(src), (char *) src);
     while (n <= send_count) {
         for (int j = 0; j < x_len; ++j) src[x_len + j] += (float) fourier_coeff(src[j], n);
+        Message m (MessageType::REQUEST, n, OperationId::PLOT, sizeof(src), (char *) src);
+        cout << "Arguments: \n";
         print_args(src);
-
+        // send the message
         serialize(&m, bytes);
-        DatagramPacket p(bytes, len, "127.0.0.1", PORT);
+        DatagramPacket p(bytes, MESSAGE_LENGTH, "127.0.0.1", PORT);
         s.send(p);
         cout << "Bytes sent: " << endl;
-            // Message *resp = receiveAck(s);
-            // n = resp->requestId;
-        cout << "Hola bb: " << endl;
+        print_bytes(bytes, 0, 32);
+        receiveAck(s, n);
+        printf("Primeros %d sumandos enviados  \n", n);
     }
     return 0;
 }

@@ -25,15 +25,11 @@ public class Server extends Application {
     }
 
     public void addPoints(XYChart.Series<Float, Float> holder, ArrayList<XYChart.Data<Float, Float>> points) {
-        for (int i = 0; i < points.size(); ++i) {
-            try {
-                TimeUnit.MILLISECONDS.sleep(10);
-            } catch (InterruptedException e) {
-                System.out.println(e);
-            }
-            XYChart.Data<Float, Float> data = points.get(i);
-            Platform.runLater(() -> holder.getData().add(data)); 
-        }
+        // for (int i = 0; i < points.size(); ++i) {
+        //     XYChart.Data<Float, Float> data = points.get(i);
+        //     Platform.runLater(() -> holder.getData().add(data)); 
+        // }
+        Platform.runLater(() -> holder.getData().addAll(points));
     }
 
     public void removePoints(XYChart.Series<Float, Float> holder, ArrayList<XYChart.Data<Float, Float>> points) {
@@ -46,7 +42,9 @@ public class Server extends Application {
             } catch (InterruptedException e) {
                 System.out.println(e);
             }
+            points.remove(counter);
         }
+
     }
 
     public void printArgs(float[] x, float[] y) {
@@ -68,18 +66,12 @@ public class Server extends Application {
             for (int i = 0; i < 512; ++i) x[i] = bb.getFloat();
             for (int i = 0; i < 512; ++i) y[i] = bb.getFloat();
             for (int i = 0; i < 512; ++i) points.add(new XYChart.Data<Float, Float>(x[i], y[i]));
+            System.out.println("Message received: \n" + messageRequest);
+            System.out.println("With arguments: \n");
             printArgs(x, y);
-            Thread t = new Thread(() -> {
-                addPoints(holder, points);
-                removePoints(holder, points);
-            });
-            t.start();
+            addPoints(holder, points);
+            removePoints(holder, points);
             replier.sendReply(Message.REPLY, messageRequest.requestId + 1, Message.DUMMY);
-            try {
-                t.join();
-            } catch (InterruptedException e) {
-                System.out.println(e);
-            }
         }
     }
   

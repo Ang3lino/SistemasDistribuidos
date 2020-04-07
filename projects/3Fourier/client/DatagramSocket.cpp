@@ -71,7 +71,7 @@ void DatagramSocket::setTimeout(long secs, long u_secs) {
 int DatagramSocket::receiveTimeout(DatagramPacket &p, time_t secs, time_t u_secs) {
 	// u_long mode = 0;
 	// ioctlsocket(s, FIONBIO, &mode);
-    setTimeout(secs, u_secs);  
+    // setTimeout(secs, u_secs);  
 	#ifdef __linux__
 	socklen_t len = sizeof(remoteAddress);
 	#else 

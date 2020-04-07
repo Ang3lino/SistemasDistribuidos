@@ -7,7 +7,8 @@ Message::Message(MessageType type, int requestid, OperationId opid, int argument
         operationId(opid), 
         argumentLength(argument_length) {
     // arguments = new char(argument_length);
-    memcpy(arguments, args, argument_length);
+    if (args != NULL)
+        memcpy(arguments, args, argument_length);
 }
 
 Message::Message() { }

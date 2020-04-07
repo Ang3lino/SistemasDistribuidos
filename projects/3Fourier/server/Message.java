@@ -41,13 +41,15 @@ public class Message {
             data[i] = bb.get();
     }
 
-    public void asString() {
-        System.out.println("Float size: " + Float.SIZE);
-        System.out.println("Int size: " + Integer.SIZE);
-        System.out.println("Message type: " + type);
-        System.out.println("request id: " + requestId);
-        System.out.println("operation id: " + operationId);
-        System.out.println("argument length: " + dataLength);
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Float size: " + Float.SIZE);
+        sb.append("Int size: " + Integer.SIZE);
+        sb.append("Message type: " + type);
+        sb.append("request id: " + requestId);
+        sb.append("operation id: " + operationId);
+        sb.append("argument length: " + dataLength);
+        return sb.toString();
     }
 
     public byte[] serialize() {
