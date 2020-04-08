@@ -24,10 +24,11 @@ public class Replier {
         }
     }
 
-    public void printBytes(byte[] bytes) {
+    public void printBytes(byte[] bytes, int from, int to) {
         int j = 0, lineCount = 0;
         System.out.printf("\n%04d: ", ++lineCount);
-        for (byte b : bytes) {
+        for (int i = from; i < to; ++i) {
+            byte b = bytes[i];
             String st = String.format("%02X", b);
             System.out.print(st + " ");
             if (++j == 16) {
@@ -42,7 +43,7 @@ public class Replier {
 
     public byte[] getRequest() {
         DatagramPacket packet = new DatagramPacket(buf, buf.length);
-        System.out.println("Server ON, waiting for a request\n");
+        System.out.println("Waiting for a request\n");
         try {
             socket.receive(packet);
         } catch (IOException e) {
@@ -50,7 +51,9 @@ public class Replier {
         }
         remoteAddress = packet.getAddress();
         port = packet.getPort();
-        return packet.getData();
+        byte[] data = packet.getData();
+        printBytes(data, 0, 32);
+        return data;
     }
 
     public boolean sendReply(int replyType, int requestId, int operationId) {
@@ -59,6 +62,8 @@ public class Replier {
         DatagramPacket pack = new DatagramPacket(response, response.length, remoteAddress, port);
         try {
             socket.send(pack);
+            System.out.println("Reply sent: ");
+            printBytes(response, 0, 32);
             return true;
         } catch (IOException e) {
             System.out.println(e);

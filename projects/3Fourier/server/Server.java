@@ -15,89 +15,120 @@ import javafx.stage.Stage;
 
 
 public class Server extends Application { 
-    public XYChart.Series<Float, Float> getSeries(ArrayList<Float> x, ArrayList<Float> y) {
+
+    private final double xMin = -32, xMax = 96;
+    private final int yMin = -16, yMax = 16;
+
+
+    public XYChart.Series<Number, Number> getSeries(ArrayList<Number> x, ArrayList<Number> y) {
         //  Configuring Series and adding data to the series    
-        XYChart.Series<Float, Float> series = new XYChart.Series<Float, Float>();  
+        XYChart.Series<Number, Number> series = new XYChart.Series<>();  
         for (int i = 0; i < x.size(); ++i) {
-            series.getData().add(new XYChart.Data<Float, Float>(x.get(i), y.get(i)));  
+            series.getData().add(new XYChart.Data<Number, Number>(x.get(i), y.get(i)));  
         }
         return series;
     }
 
-    public void addPoints(XYChart.Series<Float, Float> holder, ArrayList<XYChart.Data<Float, Float>> points) {
+    // Platform.runLater(() -> holder.getData().addAll(points));
+    public void addPoints(XYChart.Series<Number, Number> holder, ArrayList<XYChart.Data<Number, Number>> points) {
         // for (int i = 0; i < points.size(); ++i) {
         //     XYChart.Data<Float, Float> data = points.get(i);
         //     Platform.runLater(() -> holder.getData().add(data)); 
         // }
-        Platform.runLater(() -> holder.getData().addAll(points));
+        Platform.runLater(() -> {
+            holder.getData().addAll(points);
+        });
     }
 
-    public void removePoints(XYChart.Series<Float, Float> holder, ArrayList<XYChart.Data<Float, Float>> points) {
-        int counter = points.size();
-        while (--counter >= 0) {
-            final XYChart.Data<Float, Float> data = points.get(counter);
-            Platform.runLater(() -> holder.getData().remove(data)); 
-            try {
-                TimeUnit.MILLISECONDS.sleep(10);
-            } catch (InterruptedException e) {
-                System.out.println(e);
-            }
-            points.remove(counter);
-        }
+    public void removePoints(XYChart.Series<Number, Number> holder, ArrayList<XYChart.Data<Number, Number>> points) {
+        int counter = holder.getData().size();
 
+        // while (--counter >= 0) {
+        //     try {
+        //         TimeUnit.MILLISECONDS.sleep(10);
+        //     } catch (InterruptedException e) {
+        //         System.out.println(e);
+        //     }
+        //     final int index = counter;
+        //     Platform.runLater(() -> {
+        //         holder.getData().remove(index);
+        //     });
+        // }
+
+        Platform.runLater(() -> {
+            holder.getData().removeAll(points);
+        });
     }
 
     public void printArgs(float[] x, float[] y) {
         for (int i = 0; i < 512; ++i)
-            System.out.printf("%f %f \n", x[i], y[i]);
+            System.out.printf("%f, %f \n", x[i], y[i]);
+    }
+
+    private int updatePoints(Replier replier, float[] x, float[] y) {
+        byte[] request = replier.getRequest();
+        Message messageRequest = new Message(request);
+        ByteBuffer bb = ByteBuffer.wrap(messageRequest.data);
+        bb.order(ByteOrder.LITTLE_ENDIAN);
+        for (int i = 0; i < x.length; ++i) x[i] = bb.getFloat();
+        for (int i = 0; i < y.length; ++i) y[i] = bb.getFloat();
+        System.out.println("Message received: \n" + messageRequest + "\n");
+        return messageRequest.requestId;
     }
 
     // controller
-    public void updateChart(XYChart.Series<Float, Float> holder) {
-        ArrayList<XYChart.Data<Float, Float>> points = new ArrayList<>();
+    public void updateChart(XYChart.Series<Number, Number> holder) {
         Replier replier = new Replier();
-        int plotTimes = 10;
+        int plotTimes = 150, n = 512;
+        Generator g = new Generator((float) xMin, (float) xMax, n);
         while (--plotTimes >= 0) {
-            byte[] request = replier.getRequest();
-            Message messageRequest = new Message(request);
-            ByteBuffer bb = ByteBuffer.wrap(messageRequest.data);
-            bb.order(ByteOrder.LITTLE_ENDIAN);
-            float x[] = new float[512], y[] = new float[512];
-            for (int i = 0; i < 512; ++i) x[i] = bb.getFloat();
-            for (int i = 0; i < 512; ++i) y[i] = bb.getFloat();
-            for (int i = 0; i < 512; ++i) points.add(new XYChart.Data<Float, Float>(x[i], y[i]));
-            System.out.println("Message received: \n" + messageRequest);
-            System.out.println("With arguments: \n");
-            printArgs(x, y);
+            ArrayList<XYChart.Data<Number, Number>> points = new ArrayList<>();
+            // double x[] = new double[n], y[] = new double[n];
+            float x[] = new float[n], y[] = new float[n];
+
+            int requestId = updatePoints(replier, x, y);
+
+            // g.increment();
+            // x =   g.x; y = g.y;
+            // System.out.println(plotTimes);
+
+            for (int i = 0; i < n; ++i) points.add(new XYChart.Data<Number, Number>(x[i], y[i]));
+            
+            // System.out.println("With arguments: \n");
+            // printArgs(x, y);
+
             addPoints(holder, points);
+            try {
+                TimeUnit.MILLISECONDS.sleep(500);
+            } catch (InterruptedException e) {
+                System.out.println(e);
+            }
             removePoints(holder, points);
-            replier.sendReply(Message.REPLY, messageRequest.requestId + 1, Message.DUMMY);
+            replier.sendReply(Message.REPLY, requestId + 1, Message.PLOT);
         }
+        Platform.exit();
     }
   
     @Override  
     public void start(Stage primaryStage) throws Exception {  
         // Configuring Xaxis and Yaxis  
-        int xMin = -32, xMax = 96;
-        int yMin = -16, yMax = 16;
-        NumberAxis xaxis = new NumberAxis(xMin, xMax, 2);  
+        NumberAxis xaxis = new NumberAxis(xMin, xMax, 5);  
         NumberAxis yaxis = new NumberAxis(yMin, yMax, 2);  
         xaxis.setLabel("X");  
         yaxis.setLabel("Y");  
           
         // Configuring ScatterChart    
-        ScatterChart s = new ScatterChart(xaxis, yaxis);  
+        ScatterChart<Number, Number> s = new ScatterChart<>(xaxis, yaxis);  
         s.setTitle("Fourier serie");  
 
-        XYChart.Series<Float, Float> series = new XYChart.Series<Float, Float>();  
+        XYChart.Series<Number, Number> series = new XYChart.Series<>();  
         series.setName("Height value");  
           
         //Adding series to the ScatterChart  
         s.getData().add(series);  
 
         configGroupAndScene(primaryStage, s);
-        Thread t = new Thread(() -> updateChart(series));
-        t.start();
+        new Thread(() -> updateChart(series)).start();
     }  
 
     public void configGroupAndScene(Stage primaryStage, ScatterChart s) {

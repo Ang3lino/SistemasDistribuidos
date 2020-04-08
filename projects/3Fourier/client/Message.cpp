@@ -14,9 +14,11 @@ Message::Message(MessageType type, int requestid, OperationId opid, int argument
 Message::Message() { }
 
 std::ostream& operator << (std::ostream &out, const Message &msg) {
-    out << " requestId=" << msg.requestId << "\n";
-    out << " operationId=" << msg.operationId << "\n";
-    out << " sizeof(args)=" << msg.argumentLength << "\n";
-    out << " args" << msg.arguments << "\n";
+    out << "Message --> ";
+    out << " messageType: " << msg.messageType << ", ";
+    out << " requestId: " << msg.requestId << ", ";
+    out << " operationId: " << msg.operationId << ", ";
+    out << " sizeof(args): " << msg.argumentLength << "\n";
+    // out << " args" << msg.arguments << "\n";
     return out; 
 }

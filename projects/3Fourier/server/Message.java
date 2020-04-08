@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 public class Message {
-    public static final int UNKNOWN = -1, SUM = 1, DUMMY = 3;
+    public static final int UNKNOWN = -1, SUM = 1, PLOT = 2, DUMMY = 3;
     public static final int REQUEST = 1, REPLY = 2;
     public static final int MESSAGE_SIZE = 4112, DATA_LENGTH = 4096;
 
@@ -43,12 +43,13 @@ public class Message {
 
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Float size: " + Float.SIZE);
-        sb.append("Int size: " + Integer.SIZE);
-        sb.append("Message type: " + type);
-        sb.append("request id: " + requestId);
-        sb.append("operation id: " + operationId);
-        sb.append("argument length: " + dataLength);
+        sb.append("Float size: " + Float.SIZE + ", ");
+        sb.append("Int size: " + Integer.SIZE + ", ");
+        sb.append("Message type: " + type + ", ");
+        sb.append("request id: " + requestId + ", ");
+        sb.append("operation id: " + operationId + ", ");
+        sb.append("argument length: " + dataLength + ", ");
+        sb.append("\n");
         return sb.toString();
     }
 
