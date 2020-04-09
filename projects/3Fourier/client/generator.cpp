@@ -28,12 +28,11 @@ void size_of_types() {
 
 void serialize(Message *msgPacket, char *data) {
     int *q = (int *) data;    
-    *q = msgPacket->messageType;       
-    q++;    
+    *q = msgPacket->messageType; q++;    
     *q++ = msgPacket->requestId;   
     *q++ = msgPacket->operationId;     
     *q++ = msgPacket->argumentLength;     
-    char *p = (char*) q;
+    char *p = (char *) q;
     for (int i = 0; i < msgPacket->argumentLength; ++i) {
         *p = msgPacket->arguments[i];
         p++;
@@ -110,6 +109,8 @@ void send_points(Message &m, DatagramSocket &s) {
     serialize(&m, bytes);
     DatagramPacket p(bytes, MESSAGE_LENGTH, "127.0.0.1", PORT);
     s.send(p);
+    cout << "Message sent: \n";
+    cout << m << endl;
     cout << "Bytes sent: \n";
     print_bytes(bytes, 0, 32);
 }
@@ -124,26 +125,32 @@ int receive_ack(DatagramSocket &s) {
     cout << "\nMessage received: \n";
     print_bytes(msg_serialized, 0, 32);
     ByteBuffer bb(msg_serialized, MESSAGE_LENGTH);
-    Message resp((MessageType) bb.readInt(), bb.readInt(), (OperationId) bb.readInt(), bb.readInt(), (char *) NULL);
-    return resp.requestId;
+
+    // for some reason you MUST store the values in int variables and contruct the instance with them
+    int messageType = bb.readInt();
+    int requestId = bb.readInt();
+    int operationId = bb.readInt();
+    int argumentLength = bb.readInt();
+    Message resp((MessageType) messageType, requestId, (OperationId) operationId, argumentLength, (char *) NULL);
+    return requestId;
 }
 
 int main(int argc, char const *argv[]) {
-    int x_len = 512, period = 64, send_count = 32, n = 1, ack = 1;
+    int x_len = 512, period = 64, send_count = 10, n = 1, ack = 1;
     float src[1024]; // buffer, 4096 = 1024*sizeof(float)
     vector<double> x_lin = linspace(-(period >> 1), period + (period >> 1), 512);
     fill(src + x_len, src + x_len + x_len, 0); 
     for (unsigned i = 0; i < x_lin.size(); ++i) src[i] = (float) x_lin[i];
 
     DatagramSocket s;
-    s.setTimeout(30, 0);
+    s.setTimeout(10, 0);
     for (;n <= send_count; ++n) {
         for (int j = 0; j < x_len; ++j) src[j + x_len] += fourier_coeff(src[j], n);
         Message m (MessageType::REQUEST, ack, OperationId::PLOT, sizeof(src), (char *) src);
         send_points(m, s);
         ack = receive_ack(s);
         if (ack == -1) break;
-        printf("Ack %d\n", n);
+        printf("Ack %d\n", ack);
     }
     return 0;
 }
