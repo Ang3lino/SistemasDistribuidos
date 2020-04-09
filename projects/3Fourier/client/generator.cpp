@@ -145,7 +145,7 @@ int main(int argc, char const *argv[]) {
 
     DatagramSocket s;
     s.setTimeout(10, 0);
-    for (;n <= send_count; ++n) {
+    for (; ; ++n) {
         for (int j = 0; j < x_len; ++j) src[j + x_len] += fourier_coeff(src[j], n);
         Message m (MessageType::REQUEST, ack, OperationId::PLOT, sizeof(src), (char *) src);
         send_points(m, s);

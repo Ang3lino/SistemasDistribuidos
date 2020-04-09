@@ -12,6 +12,7 @@ public:
 
     int readInt();
     float readFloat();
+    char read();
 
     // void order();
 

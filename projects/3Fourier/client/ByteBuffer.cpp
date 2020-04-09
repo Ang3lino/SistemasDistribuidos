@@ -20,6 +20,13 @@ int ByteBuffer::readInt() {
     return ans;
 }
 
+char ByteBuffer::read() {
+    // unsigned mask = 0xff;
+    char b = (data[position]); 
+    ++position;
+    return b;
+}
+
 ByteBuffer ByteBuffer::wrap(char *src, int src_len) {
     return ByteBuffer(src, src_len);
 }

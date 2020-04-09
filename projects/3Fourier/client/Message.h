@@ -5,9 +5,8 @@
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
+#include "ByteBuffer.h"
 
-
-constexpr int MSG_LEN = sizeof(Message);
 const int MAX_UDP_LENGTH = 4096;
 enum OperationId: int { UNKNOWN=-1, SUM=1, PLOT, SET_X_AXIS, DUMMY };
 enum MessageType: int { REQUEST=1, REPLY };
@@ -22,9 +21,12 @@ struct Message {
     void serialize(char *);
 
     Message(MessageType , int , OperationId , int , char *);
+    Message(char *, unsigned);
     Message();
 
     friend std::ostream & operator << (std::ostream &, const Message &);
 };
+
+constexpr int MSG_LEN = sizeof(Message);
 
 #endif

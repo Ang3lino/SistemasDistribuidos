@@ -11,6 +11,26 @@ Message::Message(MessageType type, int requestid, OperationId opid, int argument
         memcpy(arguments, args, argument_length);
 }
 
+Message::Message(char *msg_serialized, unsigned len) {
+    ByteBuffer bb(msg_serialized, MSG_LEN);
+
+    // for some reason you MUST store the values in int variables and contruct the instance with them
+    int msg_type = bb.readInt();
+    int req_id = bb.readInt();
+    int op_id = bb.readInt();
+    int arg_len = bb.readInt();
+
+    messageType = (MessageType) msg_type;
+    requestId = req_id;
+    operationId = (OperationId) op_id;
+    argumentLength = arg_len;
+    if (arg_len > 0) {
+        for (int i = 0; i < arg_len; ++i)
+            arguments[i] = bb.read();
+    }
+}
+
+
 Message::Message() { }
 
 void Message::serialize(char *data) {
