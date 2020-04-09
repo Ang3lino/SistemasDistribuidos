@@ -16,7 +16,7 @@ using namespace std;
 const int ARG_LEN = 4096;
 const int PORT = 5400;
 const int MESSAGE_LENGTH = sizeof(Message);
-const int N_SAMPLES = 512;
+const int N_SAMPLES = 1024;
 
 
 void size_of_types() {
@@ -61,7 +61,7 @@ double fourier_coeff(double t, unsigned n) {
 }
 
 // // T = 64, A = 16, d = 32
-// float fourier_coeff(float t, unsigned n) {
+// double fourier_coeff(double t, unsigned n) {
 //     return (64 / M_PI) * sin((M_PI * t / 32)*(2*n - 1));
 // }
 
@@ -72,24 +72,31 @@ double fourier_sum(double t, unsigned n) {
     return acc;
 }
 
-void print_args(float *args) {
-    for (int i = 0; i < 512; ++i) 
-        printf("%f, %f\n", args[i], args[i + 512]);
+void print_args(float *x, float *y) {
+    for (int i = 0; i < N_SAMPLES; ++i) 
+        printf("%f, %f\n", x[i], y[i]);
 }
 
 int main(int argc, char const *argv[]) {
-    int x_len = 512, period = 64, send_count = 10, n = 1, ack = 1;
-    float src[1024]; // buffer, 4096 = 1024*sizeof(float)
-    vector<double> x_lin = linspace(-(period >> 1), period + (period >> 1), 512);
-    fill(src + x_len, src + x_len + x_len, 0); 
-    for (unsigned i = 0; i < x_lin.size(); ++i) src[i] = (float) x_lin[i];
     string ip = "127.0.0.1";
     Request request(ip, PORT);
     request.setSoTimeout(10, 0);
 
-    for (; ; ++n) {
-        for (int j = 0; j < x_len; ++j) src[j + x_len] += fourier_coeff(src[j], n);
-        char *response = request.doOperation(OperationId::PLOT, (char *) src, sizeof(src));
+    if (argc == 2) {
+        ip = argv[1];
+    }
+
+    int period = 64, send_count = 10, n = 1, ack = 1;
+    float x[N_SAMPLES], y[N_SAMPLES]; // buffer, 4096 = 1024*sizeof(float)
+    vector<double> x_lin = linspace(-(period >> 1), period + (period >> 1), N_SAMPLES);
+    for (unsigned i = 0; i < N_SAMPLES; ++i) x[i] = (float) x_lin[i];
+    request.doOperation(OperationId::SET_X_AXIS, (char *) x, sizeof(x));
+
+    fill(y, y + N_SAMPLES, 0); 
+    for (;; ++n) {
+        for (int j = 0; j < N_SAMPLES; ++j) y[j] += fourier_coeff(x[j], n);
+        // print_args(x, y);
+        char *response = request.doOperation(OperationId::PLOT, (char *) y, sizeof(y));
     }
     return 0;
 }

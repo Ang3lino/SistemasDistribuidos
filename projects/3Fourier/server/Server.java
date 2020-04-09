@@ -2,6 +2,8 @@
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import javafx.application.Application;
@@ -18,6 +20,7 @@ public class Server extends Application {
 
     private final double xMin = -32, xMax = 96;
     private final int yMin = -16, yMax = 16;
+    private Set<Integer> requestReceived = new HashSet<>();
 
 
     public XYChart.Series<Number, Number> getSeries(ArrayList<Number> x, ArrayList<Number> y) {
@@ -61,17 +64,21 @@ public class Server extends Application {
     }
 
     public void printArgs(float[] x, float[] y) {
-        for (int i = 0; i < 512; ++i)
+        for (int i = 0; i < x.length; ++i)
             System.out.printf("%f, %f \n", x[i], y[i]);
     }
 
     private int updatePoints(Replier replier, float[] x, float[] y) {
         byte[] request = replier.getRequest();
         Message messageRequest = new Message(request);
+        if (requestReceived.contains(messageRequest.requestId)) 
+            return messageRequest.requestId;
         ByteBuffer bb = ByteBuffer.wrap(messageRequest.data);
         bb.order(ByteOrder.LITTLE_ENDIAN);
-        for (int i = 0; i < x.length; ++i) x[i] = bb.getFloat();
-        for (int i = 0; i < y.length; ++i) y[i] = bb.getFloat();
+        if (messageRequest.operationId == Message.SET_X_AXIS)
+            for (int i = 0; i < x.length; ++i) x[i] = bb.getFloat();
+        else
+            for (int i = 0; i < y.length; ++i) y[i] = bb.getFloat();
         System.out.println("Message received: \n" + messageRequest + "\n");
         return messageRequest.requestId;
     }
@@ -79,14 +86,19 @@ public class Server extends Application {
     // controller
     public void updateChart(XYChart.Series<Number, Number> holder) {
         Replier replier = new Replier();
-        int plotTimes = 150, n = 512;
-        Generator g = new Generator((float) xMin, (float) xMax, n);
-        while (--plotTimes >= 0) {
+        int n = 1024;
+        float x[] = new float[n];
+        // Generator g = new Generator((float) xMin, (float) xMax, n);
+        while (true) {
             ArrayList<XYChart.Data<Number, Number>> points = new ArrayList<>();
-            // double x[] = new double[n], y[] = new double[n];
-            float x[] = new float[n], y[] = new float[n];
+            float y[] = new float[n];
 
             int requestId = updatePoints(replier, x, y);
+            if (requestReceived.contains(requestId)) {
+                replier.sendReply(Message.REPLY, requestId + 1, Message.PLOT);
+                continue;
+            }
+            requestReceived.add(requestId);
 
             // g.increment();
             // x =   g.x; y = g.y;
@@ -94,19 +106,20 @@ public class Server extends Application {
 
             for (int i = 0; i < n; ++i) points.add(new XYChart.Data<Number, Number>(x[i], y[i]));
             
-            // System.out.println("With arguments: \n");
-            // printArgs(x, y);
+            System.out.println("With arguments: \n");
+            printArgs(x, y);
 
             addPoints(holder, points);
             try {
-                TimeUnit.MILLISECONDS.sleep(500);
+                TimeUnit.MILLISECONDS.sleep(1000);
+                // TimeUnit.MILLISECONDS.sleep(30000);
             } catch (InterruptedException e) {
                 System.out.println(e);
             }
             removePoints(holder, points);
             replier.sendReply(Message.REPLY, requestId + 1, Message.PLOT);
         }
-        Platform.exit();
+        // Platform.exit();
     }
   
     @Override  
@@ -131,7 +144,7 @@ public class Server extends Application {
         new Thread(() -> updateChart(series)).start();
     }  
 
-    public void configGroupAndScene(Stage primaryStage, ScatterChart s) {
+    public void configGroupAndScene(Stage primaryStage, ScatterChart<Number, Number> s) {
         //Configuring group and Scene   
         double horizontalSize = 800, verticalSize = 600;
         Group root = new Group();  
@@ -140,7 +153,7 @@ public class Server extends Application {
         Scene scene = new Scene(root, horizontalSize, verticalSize);  
         scene.getStylesheets().add("style.css");
         primaryStage.setScene(scene);  
-        primaryStage.setTitle("ScatterChart Example");  
+        primaryStage.setTitle("Angel Lopez Manriquez 4CM1");  
         primaryStage.show();      
     }
 
