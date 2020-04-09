@@ -5,8 +5,8 @@ else
 	flags = 
 endif
 
-generator: DatagramPacket.o DatagramSocket.o Message.o ByteBuffer.o generator.o
-	g++ -g3 -Wall DatagramPacket.o DatagramSocket.o Message.o ByteBuffer.o generator.o -o generator $(flags)
+generator: DatagramPacket.o DatagramSocket.o Message.o ByteBuffer.o Request.o generator.o
+	g++ -g3 -Wall DatagramPacket.o DatagramSocket.o Message.o ByteBuffer.o Request.o generator.o -o generator $(flags)
 
 generator.o: generator.cpp
 	g++ -c -g3 -Wall generator.cpp

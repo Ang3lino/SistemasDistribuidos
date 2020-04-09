@@ -8,6 +8,7 @@
 #include "Message.h"
 #include "DatagramSocket.h"
 #include "ByteBuffer.h"
+#include "Request.h"
 
 
 using namespace std;
@@ -25,35 +26,6 @@ void size_of_types() {
     cout << "char " << sizeof(char) << endl;
     cout << "short " << sizeof(short) << endl;
     cout << "Message " << sizeof(Message) << endl;
-}
-
-void serialize(Message *msgPacket, char *data) {
-    int *q = (int *) data;    
-    *q = msgPacket->messageType; q++;    
-    *q++ = msgPacket->requestId;   
-    *q++ = msgPacket->operationId;     
-    *q++ = msgPacket->argumentLength;     
-    char *p = (char *) q;
-    for (int i = 0; i < msgPacket->argumentLength; ++i) {
-        *p = msgPacket->arguments[i];
-        p++;
-    }
-}
-
-void print_bytes(char *bytes, unsigned a, unsigned b) {
-    int j = 0, count = 0;
-    printf("\n%04d:   ", ++count);
-    for (unsigned i = a; i < b; ++i) {
-        printf("%02x ", (unsigned char) bytes[i]);
-        if (++j == 16) {
-            printf("\n%04d: ", ++count);
-            j = 0;
-        }
-        if (j % 4 == 0) {
-            printf("\t");
-        }
-    }
-    std::cout << std::endl;
 }
 
 template<typename T>
@@ -105,53 +77,19 @@ void print_args(float *args) {
         printf("%f, %f\n", args[i], args[i + 512]);
 }
 
-void send_points(Message &m, DatagramSocket &s) { 
-    char bytes[MESSAGE_LENGTH];
-    serialize(&m, bytes);
-    DatagramPacket p(bytes, MESSAGE_LENGTH, "127.0.0.1", PORT);
-    s.send(p);
-    cout << "Message sent: \n";
-    cout << m << endl;
-    cout << "Bytes sent: \n";
-    print_bytes(bytes, 0, 32);
-}
-
-int receive_ack(DatagramSocket &s) {
-    char msg_serialized[MESSAGE_LENGTH];
-    DatagramPacket response(msg_serialized, MESSAGE_LENGTH);
-    if (s.receive(response) == -1) {
-        cout << "[!] Error with ack\n";
-        return -1;
-    }
-    cout << "\nMessage received: \n";
-    print_bytes(msg_serialized, 0, 32);
-    ByteBuffer bb(msg_serialized, MESSAGE_LENGTH);
-
-    // for some reason you MUST store the values in int variables and contruct the instance with them
-    int messageType = bb.readInt();
-    int requestId = bb.readInt();
-    int operationId = bb.readInt();
-    int argumentLength = bb.readInt();
-    Message resp((MessageType) messageType, requestId, (OperationId) operationId, argumentLength, (char *) NULL);
-    return requestId;
-}
-
 int main(int argc, char const *argv[]) {
     int x_len = 512, period = 64, send_count = 10, n = 1, ack = 1;
     float src[1024]; // buffer, 4096 = 1024*sizeof(float)
     vector<double> x_lin = linspace(-(period >> 1), period + (period >> 1), 512);
     fill(src + x_len, src + x_len + x_len, 0); 
     for (unsigned i = 0; i < x_lin.size(); ++i) src[i] = (float) x_lin[i];
+    string ip = "127.0.0.1";
+    Request request(ip, PORT);
+    request.setSoTimeout(10, 0);
 
-    DatagramSocket s;
-    s.setTimeout(10, 0);
     for (; ; ++n) {
         for (int j = 0; j < x_len; ++j) src[j + x_len] += fourier_coeff(src[j], n);
-        Message m (MessageType::REQUEST, ack, OperationId::PLOT, sizeof(src), (char *) src);
-        send_points(m, s);
-        ack = receive_ack(s);
-        if (ack == -1) break;
-        printf("Ack %d\n", ack);
+        char *response = request.doOperation(OperationId::PLOT, (char *) src, sizeof(src));
     }
     return 0;
 }

@@ -75,8 +75,10 @@ char *Request::doOperation(string &ip, int port, OperationId op_id, char *args, 
         throw std::string("The server is not available.\n");
     Message m_response(unserialized, MSG_LEN);
     ++ack;
-    result = new char(m_response.argumentLength);
-    memcpy((char *) result, (char *) m_response.arguments, m_response.argumentLength);
+    if (m_response.argumentLength > 0) {
+        result = new char(m_response.argumentLength);
+        memcpy((char *) result, (char *) m_response.arguments, m_response.argumentLength);
+    }
     return result;
 }
 
