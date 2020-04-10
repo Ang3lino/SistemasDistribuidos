@@ -1,3 +1,6 @@
+/**
+ * Author: Angel Manriquez
+ */
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -19,7 +22,7 @@ import javafx.stage.Stage;
 public class Server extends Application { 
 
     private final double xMin = -32, xMax = 96;
-    private final int yMin = -16, yMax = 16;
+    private final int yMin = -8, yMax = 8;
     private Set<Integer> requestReceived = new HashSet<>();
 
 
@@ -44,15 +47,13 @@ public class Server extends Application {
     }
 
     public void removePoints(XYChart.Series<Number, Number> holder, ArrayList<XYChart.Data<Number, Number>> points) {
-        int counter = holder.getData().size();
-
-        // while (--counter >= 0) {
+        // for (int i = 0; i < holder.getData().size(); ++i) {
         //     try {
         //         TimeUnit.MILLISECONDS.sleep(10);
         //     } catch (InterruptedException e) {
         //         System.out.println(e);
         //     }
-        //     final int index = counter;
+        //     final int index = i;
         //     Platform.runLater(() -> {
         //         holder.getData().remove(index);
         //     });
@@ -68,11 +69,12 @@ public class Server extends Application {
             System.out.printf("%f, %f \n", x[i], y[i]);
     }
 
-    private int updatePoints(Replier replier, float[] x, float[] y) {
+    private Message getMessage(Replier replier) {
         byte[] request = replier.getRequest();
-        Message messageRequest = new Message(request);
-        if (requestReceived.contains(messageRequest.requestId)) 
-            return messageRequest.requestId;
+        return new Message(request);
+    }
+
+    private void updatePoints(Replier replier, Message messageRequest, float[] x, float[] y) {
         ByteBuffer bb = ByteBuffer.wrap(messageRequest.data);
         bb.order(ByteOrder.LITTLE_ENDIAN);
         if (messageRequest.operationId == Message.SET_X_AXIS)
@@ -80,43 +82,33 @@ public class Server extends Application {
         else
             for (int i = 0; i < y.length; ++i) y[i] = bb.getFloat();
         System.out.println("Message received: \n" + messageRequest + "\n");
-        return messageRequest.requestId;
     }
 
     // controller
-    public void updateChart(XYChart.Series<Number, Number> holder) {
+    public void updateChart(XYChart.Series<Number, Number> holder) throws InterruptedException {
         Replier replier = new Replier();
-        int n = 1024;
-        float x[] = new float[n];
-        // Generator g = new Generator((float) xMin, (float) xMax, n);
+        int n = Message.DATA_LENGTH >> 2;
+        float x[] = new float[n], y[] = new float[n];
         while (true) {
             ArrayList<XYChart.Data<Number, Number>> points = new ArrayList<>();
-            float y[] = new float[n];
-
-            int requestId = updatePoints(replier, x, y);
+            Message messageRequest = getMessage(replier);
+            int requestId = messageRequest.requestId;
             if (requestReceived.contains(requestId)) {
                 replier.sendReply(Message.REPLY, requestId + 1, Message.PLOT);
                 continue;
             }
             requestReceived.add(requestId);
-
-            // g.increment();
-            // x =   g.x; y = g.y;
-            // System.out.println(plotTimes);
-
+            updatePoints(replier, messageRequest, x, y);
             for (int i = 0; i < n; ++i) points.add(new XYChart.Data<Number, Number>(x[i], y[i]));
-            
-            System.out.println("With arguments: \n");
-            printArgs(x, y);
-
-            addPoints(holder, points);
-            try {
-                TimeUnit.MILLISECONDS.sleep(1000);
-                // TimeUnit.MILLISECONDS.sleep(30000);
-            } catch (InterruptedException e) {
-                System.out.println(e);
-            }
-            removePoints(holder, points);
+            Thread add = new Thread(() -> {
+                addPoints(holder, points);    
+                Thread remove = new Thread(() -> removePoints(holder, points));
+                try { TimeUnit.MILLISECONDS.sleep(750);
+                } catch (InterruptedException e) { System.out.println(e); }
+                remove.start();
+            });
+            add.start();
+            add.join();
             replier.sendReply(Message.REPLY, requestId + 1, Message.PLOT);
         }
         // Platform.exit();
@@ -126,22 +118,28 @@ public class Server extends Application {
     public void start(Stage primaryStage) throws Exception {  
         // Configuring Xaxis and Yaxis  
         NumberAxis xaxis = new NumberAxis(xMin, xMax, 5);  
-        NumberAxis yaxis = new NumberAxis(yMin, yMax, 2);  
+        NumberAxis yaxis = new NumberAxis(yMin, yMax, 5);  
         xaxis.setLabel("X");  
         yaxis.setLabel("Y");  
           
         // Configuring ScatterChart    
         ScatterChart<Number, Number> s = new ScatterChart<>(xaxis, yaxis);  
-        s.setTitle("Fourier serie");  
+        s.setTitle("Proyecto 3");  
 
         XYChart.Series<Number, Number> series = new XYChart.Series<>();  
-        series.setName("Height value");  
+        series.setName("Graficador y receptor de las sumas parciales crecientes de fourier enviadas en C++");  
           
         //Adding series to the ScatterChart  
         s.getData().add(series);  
 
         configGroupAndScene(primaryStage, s);
-        new Thread(() -> updateChart(series)).start();
+        new Thread(() -> {
+            try {
+                updateChart(series);
+            } catch (InterruptedException e) { 
+                System.out.println(e); 
+            }
+        }).start();
     }  
 
     public void configGroupAndScene(Stage primaryStage, ScatterChart<Number, Number> s) {

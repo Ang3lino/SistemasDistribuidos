@@ -48,10 +48,10 @@ void print_bytes(char *bytes, unsigned a, unsigned b) {
     std::cout << std::endl;
 }
 
-// timeout version
+// timeout version, returns NULL if the remote methods doesn't return any argument. Throws exception if we can't reach the server
 char *Request::doOperation(string &ip, int port, OperationId op_id, char *args, size_t arglen, time_t secs, long u_secs) {
     Message m_request(MessageType::REQUEST, ack, op_id, arglen, args);
-    char *result = nullptr, serialized[MSG_LEN], unserialized[MSG_LEN];
+    char *result = NULL, serialized[MSG_LEN], unserialized[MSG_LEN];
     const int MAX_ATTEMPT = 7;
     DatagramSocket s;
     m_request.serialize(serialized);

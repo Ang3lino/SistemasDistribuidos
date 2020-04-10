@@ -1,3 +1,8 @@
+/**
+ * Author: Angel Manriquez
+ */
+
+
 #include <iostream>
 #include <vector>
 #include <algorithm> 
@@ -13,10 +18,8 @@
 
 using namespace std;
 
-const int ARG_LEN = 4096;
 const int PORT = 5400;
-const int MESSAGE_LENGTH = sizeof(Message);
-const int N_SAMPLES = 1024;
+const int N_SAMPLES = ARG_LEN >> 2;
 
 
 void size_of_types() {
@@ -53,17 +56,13 @@ double sampling(double x) {
     return sin(x) / x;
 }
 
-// T = 64, A = 16, d = 32
+// T = 64, A = 8, d = 32
 double fourier_coeff(double t, unsigned n) {
     double p = (32 / (M_PI * n)) * sampling(M_PI * n / 2) - 1;
     double q = sin((M_PI * n / 32) * t);
     return p*q;
 }
 
-// // T = 64, A = 16, d = 32
-// double fourier_coeff(double t, unsigned n) {
-//     return (64 / M_PI) * sin((M_PI * t / 32)*(2*n - 1));
-// }
 
 double fourier_sum(double t, unsigned n) {
     double acc = 0;
@@ -86,7 +85,7 @@ int main(int argc, char const *argv[]) {
         ip = argv[1];
     }
 
-    int period = 64, send_count = 10, n = 1, ack = 1;
+    int period = 64, n = 1;
     float x[N_SAMPLES], y[N_SAMPLES]; // buffer, 4096 = 1024*sizeof(float)
     vector<double> x_lin = linspace(-(period >> 1), period + (period >> 1), N_SAMPLES);
     for (unsigned i = 0; i < N_SAMPLES; ++i) x[i] = (float) x_lin[i];
@@ -96,7 +95,7 @@ int main(int argc, char const *argv[]) {
     for (;; ++n) {
         for (int j = 0; j < N_SAMPLES; ++j) y[j] += fourier_coeff(x[j], n);
         // print_args(x, y);
-        char *response = request.doOperation(OperationId::PLOT, (char *) y, sizeof(y));
+        request.doOperation(OperationId::PLOT, (char *) y, sizeof(y));
     }
     return 0;
 }

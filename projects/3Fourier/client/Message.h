@@ -7,7 +7,7 @@
 #include <cstring>
 #include "ByteBuffer.h"
 
-const int MAX_UDP_LENGTH = 4096;
+const int ARG_LEN = 4096;
 enum OperationId: int { UNKNOWN=-1, SUM=1, PLOT, SET_X_AXIS, DUMMY };
 enum MessageType: int { REQUEST=1, REPLY };
 
@@ -16,7 +16,7 @@ struct Message {
     int requestId;
     OperationId operationId; //Identificador del mensaje
     int argumentLength;
-    char arguments[MAX_UDP_LENGTH]; 
+    char arguments[ARG_LEN]; 
     // char *arguments;
     void serialize(char *);
 
