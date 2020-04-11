@@ -46,19 +46,25 @@ public class Server extends Application {
         });
     }
 
-    public void removePoints(XYChart.Series<Number, Number> holder, ArrayList<XYChart.Data<Number, Number>> points) {
-        // for (int i = 0; i < holder.getData().size(); ++i) {
-        //     try {
-        //         TimeUnit.MILLISECONDS.sleep(10);
-        //     } catch (InterruptedException e) {
-        //         System.out.println(e);
-        //     }
-        //     final int index = i;
-        //     Platform.runLater(() -> {
-        //         holder.getData().remove(index);
-        //     });
-        // }
 
+    public void removePoints(XYChart.Series<Number, Number> holder) {
+        final int n = holder.getData().size();
+        for (int i = 0; i < n; ++i) {
+            Platform.runLater(() -> {
+                holder.getData().remove(0);
+            });
+        }
+    }
+
+    public void sleepMilliseconds(int ms) {
+        try {
+            TimeUnit.MILLISECONDS.sleep(ms);
+        } catch (InterruptedException e) {
+            System.out.println(e);
+        }
+    }
+
+    public void removePoints(XYChart.Series<Number, Number> holder, ArrayList<XYChart.Data<Number, Number>> points) {
         Platform.runLater(() -> {
             holder.getData().removeAll(points);
         });
@@ -69,19 +75,33 @@ public class Server extends Application {
             System.out.printf("%f, %f \n", x[i], y[i]);
     }
 
-    private Message getMessage(Replier replier) {
-        byte[] request = replier.getRequest();
-        return new Message(request);
-    }
 
-    private void updatePoints(Replier replier, Message messageRequest, float[] x, float[] y) {
+    private ArrayList<XYChart.Data<Number, Number>> getPointsAsArrayList(Message messageRequest, float[] x, float[] y) {
         ByteBuffer bb = ByteBuffer.wrap(messageRequest.data);
         bb.order(ByteOrder.LITTLE_ENDIAN);
         if (messageRequest.operationId == Message.SET_X_AXIS)
-            for (int i = 0; i < x.length; ++i) x[i] = bb.getFloat();
+            for (int i = 0; i < x.length; ++i) 
+                x[i] = bb.getFloat();
         else
-            for (int i = 0; i < y.length; ++i) y[i] = bb.getFloat();
+            for (int i = 0; i < y.length; ++i) 
+                y[i] = bb.getFloat();
         System.out.println("Message received: \n" + messageRequest + "\n");
+        ArrayList<XYChart.Data<Number, Number>> points = new ArrayList<>(x.length);
+        for (int i = 0; i < x.length; ++i) points.add(new XYChart.Data<Number, Number>(x[i], y[i]));
+        return points;
+    }
+
+    private Message getMessage(Replier replier, boolean repeated) {
+        byte[] request = replier.getRequest();
+        Message messageRequest = new Message(request);
+        int requestId = messageRequest.requestId;
+        if (requestReceived.contains(requestId)) {
+            replier.sendReply(Message.REPLY, requestId + 1, Message.PLOT);
+            repeated = true;
+        }
+        requestReceived.add(requestId);
+        repeated = false;
+        return messageRequest; 
     }
 
     // controller
@@ -89,27 +109,29 @@ public class Server extends Application {
         Replier replier = new Replier();
         int n = Message.DATA_LENGTH >> 2;
         float x[] = new float[n], y[] = new float[n];
+        boolean repeated = false;
+
+        // add points first, then in the loop we'll remove them with threading
+        Message message = getMessage(replier, repeated);
+        ArrayList<XYChart.Data<Number, Number>> points = getPointsAsArrayList(message, x, y);
+        addPoints(holder, points);    
+        replier.sendReply(Message.REPLY, message.requestId + 1, Message.PLOT);
+
         while (true) {
-            ArrayList<XYChart.Data<Number, Number>> points = new ArrayList<>();
-            Message messageRequest = getMessage(replier);
-            int requestId = messageRequest.requestId;
-            if (requestReceived.contains(requestId)) {
-                replier.sendReply(Message.REPLY, requestId + 1, Message.PLOT);
-                continue;
-            }
-            requestReceived.add(requestId);
-            updatePoints(replier, messageRequest, x, y);
-            for (int i = 0; i < n; ++i) points.add(new XYChart.Data<Number, Number>(x[i], y[i]));
-            Thread add = new Thread(() -> {
-                addPoints(holder, points);    
-                Thread remove = new Thread(() -> removePoints(holder, points));
-                try { TimeUnit.MILLISECONDS.sleep(750);
-                } catch (InterruptedException e) { System.out.println(e); }
-                remove.start();
+            final ArrayList<XYChart.Data<Number, Number>> finalPoints = points;
+            Thread remove = new Thread(() -> {
+                sleepMilliseconds(2500);
+                removePoints(holder, finalPoints);
             });
-            add.start();
-            add.join();
-            replier.sendReply(Message.REPLY, requestId + 1, Message.PLOT);
+            remove.start();
+            message = getMessage(replier, repeated);
+            if (repeated) continue;
+            points = getPointsAsArrayList(message, x, y);
+            try { 
+                remove.join();
+            } catch (InterruptedException e) { System.out.println(e);}
+            addPoints(holder, points);    
+            replier.sendReply(Message.REPLY, message.requestId + 1, Message.PLOT);
         }
         // Platform.exit();
     }
@@ -127,7 +149,7 @@ public class Server extends Application {
         s.setTitle("Proyecto 3");  
 
         XYChart.Series<Number, Number> series = new XYChart.Series<>();  
-        series.setName("Graficador y receptor de las sumas parciales crecientes de fourier enviadas en C++");  
+        series.setName("Graficador y receptor (Java) de las sumas parciales crecientes de Fourier enviadas por C++");  
           
         //Adding series to the ScatterChart  
         s.getData().add(series);  

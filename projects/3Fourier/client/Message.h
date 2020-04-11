@@ -7,7 +7,7 @@
 #include <cstring>
 #include "ByteBuffer.h"
 
-const int ARG_LEN = 4096;
+const int ARG_LEN = 1 << 15;
 enum OperationId: int { UNKNOWN=-1, SUM=1, PLOT, SET_X_AXIS, DUMMY };
 enum MessageType: int { REQUEST=1, REPLY };
 

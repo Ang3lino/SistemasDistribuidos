@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 public class Message {
-    public static final int DATA_LENGTH = 4096, MESSAGE_SIZE = DATA_LENGTH + 16;
+    public static final int DATA_LENGTH = 1 << 15, MESSAGE_SIZE = DATA_LENGTH + 16;
     public static final int UNKNOWN = -1, SUM = 1, PLOT = 2, SET_X_AXIS = 3;
     public static final int REQUEST = 1, REPLY = 2;
 

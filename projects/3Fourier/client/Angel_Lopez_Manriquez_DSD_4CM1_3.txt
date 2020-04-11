@@ -1,0 +1,706 @@
+// ByteBuffer.cpp ------------------------------------------------------------------------------------------
+#include "ByteBuffer.h"
+
+
+ByteBuffer::ByteBuffer(char *src, int src_len) {
+    data = (unsigned char *) src;
+    position = 0;
+    limit = src_len;
+    capacity = src_len;
+    order = 0;
+}
+
+int ByteBuffer::readInt() {
+    // unsigned mask = 0xff;
+    unsigned a = (data[position]     ) << 24;
+    unsigned b = (data[position + 1] ) << 16; 
+    unsigned c = (data[position + 2] ) <<  8 ;
+    unsigned d =  data[position + 3] ;
+    int ans = (a | b | c | d);
+    position += 4;
+    return ans;
+}
+
+char ByteBuffer::read() {
+    // unsigned mask = 0xff;
+    char b = (data[position]); 
+    ++position;
+    return b;
+}
+
+ByteBuffer ByteBuffer::wrap(char *src, int src_len) {
+    return ByteBuffer(src, src_len);
+}
+
+// ByteBuffer.h ------------------------------------------------------------------------------------------
+
+#ifndef __bytebuffer__
+#define __bytebuffer__ 
+
+#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+
+class ByteBuffer {
+public:
+    ByteBuffer(char *, int);
+
+    int readInt();
+    float readFloat();
+    char read();
+
+    // void order();
+
+    static ByteBuffer wrap(char *, int);
+
+    // ~ByteBuffer();
+private:
+    unsigned char *data;
+    int position;
+    int limit;
+    int capacity;
+    bool order;
+};
+
+#endif
+
+// DatagramPacket.cpp ------------------------------------------------------------------------------------------
+
+#include "DatagramPacket.h"
+
+DatagramPacket::DatagramPacket(char* buf, size_t len): port(0), ip("") {
+	setData(buf, len);
+}
+
+DatagramPacket::DatagramPacket(char* buf, size_t len, const string & addr, uint16_t iport) {
+	setData(buf, len);
+	setAddress(addr);
+	setPort(iport);
+}
+
+string DatagramPacket::getAddress() { return ip; }
+
+uint16_t DatagramPacket::getPort() { return port; }
+
+char* DatagramPacket::getData() { return data; }
+
+size_t DatagramPacket::getLength() { return length; }
+
+// AVOID INLINE keyword in member functions! 
+void DatagramPacket::setAddress(const string & addr) { ip = addr; }
+void DatagramPacket::setPort(uint16_t iport) { port = iport; }
+void DatagramPacket::setLength(size_t len) { length = len; }
+
+void DatagramPacket::setData(char* buf, size_t len) {
+	data = buf;
+	setLength(len);
+}
+// DatagramPacket.h ------------------------------------------------------------------------------------------
+
+#ifndef __DatagramPacket_H__
+#define __DatagramPacket_H__
+
+#include <cstddef>
+#include <string>
+#include <string.h>
+
+using namespace std;
+
+class DatagramPacket {
+public:
+    // data, len, ip, port
+    DatagramPacket(char* , size_t, const string &, uint16_t );
+    DatagramPacket(char* , size_t);
+    DatagramPacket();
+    string getAddress();
+    char *getData();
+    size_t getLength();
+    uint16_t getPort();
+
+    void setAddress(const string &);
+    void setData(char* , size_t);
+    void setLength(size_t);
+    void setPort(uint16_t);
+
+private:
+    char *data;
+    uint16_t port;
+    string ip;
+    size_t length;
+};
+
+#endif
+// DatagramSocket.cpp ------------------------------------------------------------------------------------------
+#include "DatagramSocket.h"
+
+
+DatagramSocket::DatagramSocket(): DatagramSocket(0) {}
+
+DatagramSocket::DatagramSocket(uint16_t iport): DatagramSocket(iport, "0.0.0.0") {}
+
+DatagramSocket::DatagramSocket(uint16_t iport, const std::string &addr): timeout_set(false) {
+	#ifdef _WIN32  // detect windows of 32 and 64 bits
+		WSAData wsaData;
+		WORD word = MAKEWORD(2, 2);
+		if (WSAStartup(word, &wsaData) != 0) {
+			std::cerr << "Server: WSAStartup failed with error: " << WSAGetLastError() << std::endl;
+			exit(1);
+		}
+	#endif 
+
+	s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	// bzero((char *)&localAddress, sizeof(localAddress));
+	memset((char *) &localAddress, 0, sizeof(localAddress));
+	localAddress.sin_family = AF_INET;
+	localAddress.sin_addr.s_addr = inet_addr(addr.c_str());
+	localAddress.sin_port = htons(iport);
+	bind(s, (struct sockaddr *) &localAddress, sizeof(localAddress));
+}
+
+
+DatagramSocket::~DatagramSocket() {
+	unbind();
+}
+
+void DatagramSocket::unbind() {
+	#ifdef __linux__
+		close(s);
+		s = 0;
+	#else 
+		closesocket(s);
+		WSACleanup();
+	#endif
+}
+
+int DatagramSocket::receive(DatagramPacket &p) {
+	if (timeout_set) 
+		return receiveTimeout(p, timeout.tv_sec, timeout.tv_usec);
+	#ifdef __linux__
+	socklen_t len = sizeof(remoteAddress);
+	#else 
+	int len = sizeof(remoteAddress);
+	#endif
+	int n = recvfrom(s, p.getData(), p.getLength(), 0, (struct sockaddr *) &remoteAddress, &len);
+	p.setPort(ntohs(remoteAddress.sin_port));
+	p.setAddress(std::string(inet_ntoa(remoteAddress.sin_addr)));
+	p.setLength(n);
+	return n;
+}
+
+void DatagramSocket::setTimeout(long secs, long u_secs) {
+    timeout = { 
+        .tv_sec = secs, 
+        .tv_usec = u_secs };  
+    timeout_set = true;
+
+    #ifdef _WIN32
+    DWORD dw = (secs * 1000) + ((u_secs + 999) / 1000);
+    setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char *) &dw, sizeof(dw));
+    #else
+    setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout, sizeof(struct timeval));
+    #endif
+}
+
+int DatagramSocket::receiveTimeout(DatagramPacket &p, time_t secs, time_t u_secs) {
+	// u_long mode = 0;
+	// ioctlsocket(s, FIONBIO, &mode);
+    // setTimeout(secs, u_secs);  
+	#ifdef __linux__
+	socklen_t len = sizeof(remoteAddress);
+	#else 
+	int len = sizeof(remoteAddress);
+	#endif
+    int n = recvfrom(s, p.getData(), p.getLength(), 0, (struct sockaddr *) &remoteAddress, &len);
+    if (n < 0) {  // deal with errors 
+        #ifdef _WIN32
+		int errcode = WSAGetLastError();
+        if (errcode == WSAETIMEDOUT) 
+        #else
+		int errcode = errno;
+        if (errcode == EAGAIN || errcode == EWOULDBLOCK)
+        #endif
+            std::cout << "Timeout!" << std::endl;
+        else 
+            std::cerr << "Error in recvfrom, error code " << errcode  << std::endl;
+        return -1;
+    }
+    p.setPort(ntohs(remoteAddress.sin_port));  
+    p.setAddress(string(inet_ntoa(remoteAddress.sin_addr)));
+    p.setLength(n);
+    return n;
+}
+
+// int DatagramSocket::receiveTimeout(DatagramPacket &p, time_t secs, time_t u_secs) {
+//     timeval timeout = { 
+//         .tv_sec = (long) secs, 
+//         .tv_usec = (long) u_secs };  
+//     fd_set fds;
+//     FD_ZERO(&fds);
+//     FD_SET(s, &fds);
+//     int nfds;
+//     #ifdef _WIN32
+//     nfds = 0;
+//     #else
+//     nfds = s + 1;
+//     #endif
+//     int sret = select(nfds, &fds, NULL, NULL, &timeout);
+//     if (sret <= 0) {
+//         if (sret == 0) 
+//             std::cout << "Timeout!" << std::endl;
+//         else
+//             std::cerr << "Error in select." << std::endl;
+//         return -1;
+//     }
+//     int len = sizeof(remoteAddress);
+//     int n = recvfrom(s, p.getData(), p.getLength(), 0, (struct sockaddr *) &remoteAddress, &len);
+//     if (n < 0) {  // deal with errors 
+//         std::cerr << "Error in recvfrom." << std::endl;
+//         return -1;
+//     }
+//     p.setPort(remoteAddress.sin_port);  
+//     p.setAddress(string(inet_ntoa(remoteAddress.sin_addr)));
+//     p.setLength(n);
+//     return n;
+// }
+
+int DatagramSocket::send(DatagramPacket &p) {
+	// bzero((char *)&remoteAddress, sizeof(remoteAddress));
+	memset((char *) &remoteAddress, 0, sizeof(remoteAddress));
+
+	remoteAddress.sin_family = AF_INET;
+	remoteAddress.sin_port = htons(p.getPort());
+	remoteAddress.sin_addr.s_addr = inet_addr(p.getAddress().c_str());
+	return sendto(s, p.getData(), p.getLength(), 0, (struct sockaddr*) &remoteAddress, sizeof(remoteAddress));
+}
+
+// DatagramSocket.h ------------------------------------------------------------------------------------------
+
+#ifndef __DatagramSocket_H__
+#define __DatagramSocket_H__
+
+
+#ifdef __linux__
+	#include <sys/socket.h>
+	#include <netinet/in.h>
+	#include <arpa/inet.h>
+#else
+	// #include <ws2tcpip.h>
+	#include <winsock2.h>
+	// #pragma comment(lib,"ws2_32.lib") // Winsock Library, it only works in the microsoft compiler, MinGW ignores it
+#endif
+
+#include <iostream>
+
+#include <strings.h>
+#include <unistd.h>
+#include <errno.h>
+#include <sys/time.h>
+#include "DatagramPacket.h"
+
+class DatagramSocket {
+public:
+	DatagramSocket();
+	DatagramSocket(uint16_t iport);
+	DatagramSocket(uint16_t iport, const std::string & addr);
+	~DatagramSocket();
+
+	void unbind();
+
+	int send(DatagramPacket &);
+	int receive(DatagramPacket &);
+	
+	// secs, usecs
+	void setTimeout(long, long);
+	// DatagramPacket, secs, usecs
+	int receiveTimeout(DatagramPacket &, time_t, time_t);
+private:
+	sockaddr_in localAddress;
+	sockaddr_in remoteAddress;
+
+	struct timeval timeout;
+	bool timeout_set;
+	#ifdef __linux__
+		int s;
+	#else
+		SOCKET s;
+		struct fd_set fds;
+	#endif
+};
+
+#endif
+
+// generator.cpp ------------------------------------------------------------------------------------------
+/**
+ * Author: Angel Manriquez
+ */
+
+
+#include <iostream>
+#include <vector>
+#include <algorithm> 
+
+#define _USE_MATH_DEFINES  // use M_PI
+#include <math.h>
+
+#include "Message.h"
+#include "DatagramSocket.h"
+#include "ByteBuffer.h"
+#include "Request.h"
+
+
+using namespace std;
+
+const int PORT = 5400;
+const int N_SAMPLES = ARG_LEN >> 2;
+
+
+void size_of_types() {
+    cout << "int " << sizeof(int) << endl;
+    cout << "float " << sizeof(float) << endl;
+    cout << "double " << sizeof(double) << endl;
+    cout << "char " << sizeof(char) << endl;
+    cout << "short " << sizeof(short) << endl;
+    cout << "Message " << sizeof(Message) << endl;
+}
+
+template<typename T>
+std::vector<double> linspace(T start_in, T end_in, int num_in) {
+    std::vector<double> linspaced;
+    double start = static_cast<double>(start_in);
+    double end = static_cast<double>(end_in);
+    double num = static_cast<double>(num_in);
+    if (num == 0) { return linspaced; }
+    if (num == 1) {
+        linspaced.push_back(start);
+        return linspaced;
+    }
+    double delta = (end - start) / (num - 1);
+    for (int i = 0; i < num-1; ++i) {
+          linspaced.push_back(start + delta * i);
+    }
+    linspaced.push_back(end); // I want to ensure that start and end
+                            // are exactly the same as the input
+    return linspaced;
+}
+
+double sampling(double x) {
+    if (abs(x) < 0.01) return 1.0;
+    return sin(x) / x;
+}
+
+// T = 64, A = 8, d = 32
+double fourier_coeff(double t, unsigned n) {
+    double p = (32 / (M_PI * n)) * sampling(M_PI * n / 2) - 1;
+    double q = sin((M_PI * n / 32) * t);
+    return p*q;
+}
+
+
+double fourier_sum(double t, unsigned n) {
+    double acc = 0;
+    for (unsigned i = 1; i <= n; ++i)
+        acc += fourier_coeff(t, i);
+    return acc;
+}
+
+void print_args(float *x, float *y) {
+    for (int i = 0; i < N_SAMPLES; ++i) 
+        printf("%f, %f\n", x[i], y[i]);
+}
+
+int main(int argc, char const *argv[]) {
+    string ip = "127.0.0.1";
+    Request request(ip, PORT);
+    request.setSoTimeout(10, 0);
+
+    if (argc == 2) {
+        ip = argv[1];
+    }
+
+    int period = 64, n = 1;
+    float x[N_SAMPLES], y[N_SAMPLES]; // buffer, 4096 = 1024*sizeof(float)
+    vector<double> x_lin = linspace(-(period >> 1), period + (period >> 1), N_SAMPLES);
+    for (unsigned i = 0; i < N_SAMPLES; ++i) x[i] = (float) x_lin[i];
+    request.doOperation(OperationId::SET_X_AXIS, (char *) x, sizeof(x));
+
+    fill(y, y + N_SAMPLES, 0); 
+    for (;; ++n) {
+        for (int j = 0; j < N_SAMPLES; ++j) y[j] += fourier_coeff(x[j], n);
+        // print_args(x, y);
+        request.doOperation(OperationId::PLOT, (char *) y, sizeof(y));
+    }
+    return 0;
+}
+
+// makefile ------------------------------------------------------------------------------------------
+ 
+ifeq ($(OS),Windows_NT)
+	flags = -lwsock32
+else 
+	flags = 
+endif
+
+generator: DatagramPacket.o DatagramSocket.o Message.o ByteBuffer.o Request.o generator.o
+	g++ -g3 -Wall DatagramPacket.o DatagramSocket.o Message.o ByteBuffer.o Request.o generator.o -o generator $(flags)
+
+generator.o: generator.cpp
+	g++ -c -g3 -Wall generator.cpp
+ByteBuffer.o: ByteBuffer.cpp
+	g++ -c -g3 -Wall ByteBuffer.cpp
+Message.o: Message.cpp
+	g++ -c -g3 -Wall Message.cpp
+DatagramPacket.o: DatagramPacket.cpp
+	g++ -c -g3 -Wall DatagramPacket.cpp 
+DatagramSocket.o: DatagramSocket.cpp
+	g++ -c -g3 -Wall DatagramSocket.cpp 
+	
+Reply.o: Reply.cpp
+	g++ -c -g3 -Wall Reply.cpp 
+Request.o: Request.cpp
+	g++ -c -g3 -Wall Request.cpp 
+
+clear:
+	del *.o 
+	del *.exe 
+	del *~ 
+
+clear_lin:
+	rm -rf *.o *.exe client server
+// merge_files.py ------------------------------------------------------------------------------------------
+
+import os
+
+
+plane_txt_name = 'Angel_Lopez_Manriquez_DSD_4CM1_3.txt'
+
+buff = ''
+for fname in os.listdir('.'):
+    if fname in (plane_txt_name, __name__):
+        continue
+    buff += f'// {fname} ' + '-' * 90 + '\n'
+    with open(fname, 'r') as f:
+        buff += f.read()
+    buff += '\n'
+with open(plane_txt_name, 'w') as f:
+    f.write(buff)
+
+// Message.cpp ------------------------------------------------------------------------------------------
+#include "Message.h"
+
+
+Message::Message(MessageType type, int requestid, OperationId opid, int argument_length, char *args):
+        messageType(type),  
+        requestId(requestid),
+        operationId(opid), 
+        argumentLength(argument_length) {
+    // arguments = new char(argument_length);
+    if (args != NULL)
+        memcpy(arguments, args, argument_length);
+}
+
+Message::Message(char *msg_serialized, unsigned len) {
+    ByteBuffer bb(msg_serialized, MSG_LEN);
+
+    // for some reason you MUST store the values in int variables and contruct the instance with them
+    int msg_type = bb.readInt();
+    int req_id = bb.readInt();
+    int op_id = bb.readInt();
+    int arg_len = bb.readInt();
+
+    messageType = (MessageType) msg_type;
+    requestId = req_id;
+    operationId = (OperationId) op_id;
+    argumentLength = arg_len;
+    if (arg_len > 0) {
+        for (int i = 0; i < arg_len; ++i)
+            arguments[i] = bb.read();
+    }
+}
+
+
+Message::Message() { }
+
+void Message::serialize(char *data) {
+    int *q = (int *) data;    
+    *q = messageType; q++;    
+    *q++ = requestId;   
+    *q++ = operationId;     
+    *q++ = argumentLength;     
+    char *p = (char *) q;
+    for (int i = 0; i < argumentLength; ++i) {
+        *p++ = arguments[i];
+    }
+}
+
+std::ostream& operator << (std::ostream &out, const Message &msg) {
+    out << "Message --> ";
+    out << " messageType: " << msg.messageType << ", ";
+    out << " requestId: " << msg.requestId << ", ";
+    out << " operationId: " << msg.operationId << ", ";
+    out << " sizeof(args): " << msg.argumentLength << "\n";
+    // out << " args" << msg.arguments << "\n";
+    return out; 
+}
+
+// Message.h ------------------------------------------------------------------------------------------
+
+#ifndef __MESSAGE_H__
+#define __MESSAGE_H__
+
+#include <iostream>
+#include <cstdlib>
+#include <cstring>
+#include "ByteBuffer.h"
+
+const int ARG_LEN = 1 << 15;
+enum OperationId: int { UNKNOWN=-1, SUM=1, PLOT, SET_X_AXIS, DUMMY };
+enum MessageType: int { REQUEST=1, REPLY };
+
+struct Message {
+    MessageType messageType; // Solicitud, Respuesta
+    int requestId;
+    OperationId operationId; //Identificador del mensaje
+    int argumentLength;
+    char arguments[ARG_LEN]; 
+    // char *arguments;
+    void serialize(char *);
+
+    Message(MessageType , int , OperationId , int , char *);
+    Message(char *, unsigned);
+    Message();
+
+    friend std::ostream & operator << (std::ostream &, const Message &);
+};
+
+constexpr int MSG_LEN = sizeof(Message);
+
+#endif
+
+// Request.cpp ------------------------------------------------------------------------------------------
+#include "Request.h"
+
+
+Request::Request() {
+}
+
+Request::Request(string ip_, int port_): ip(ip_), port(port_) {
+}
+
+void Request::setSoTimeout(long secs_, long u_secs_) {
+    timeout_set = true;
+    secs = secs_;
+    u_secs = u_secs_;
+}
+
+char *Request::doOperation(string &ip, int port, OperationId op_id, char *args, size_t arglen) {
+    Message msg (MessageType::REQUEST, 1, op_id, arglen, args);
+    DatagramPacket p((char *) &msg, sizeof(Message), ip, port);
+    Message buff ;
+    DatagramPacket response((char *) &buff, sizeof(Message));
+    DatagramSocket sock;
+    sock.send(p);
+    sock.receive(response);
+    char *result = new char(buff.argumentLength);
+    memcpy((char *) result, (char *) buff.arguments, buff.argumentLength);
+    return result;
+}
+
+char *Request::doOperation(OperationId op_id, char *args, size_t arglen) {
+    if (timeout_set) 
+        return doOperation(ip, port, op_id, args, arglen, secs, u_secs);
+    return doOperation(ip, port, op_id, args, arglen);  
+}
+
+void print_bytes(char *bytes, unsigned a, unsigned b) {
+    int j = 0, count = 0;
+    printf("\n%04d:   ", ++count);
+    for (unsigned i = a; i < b; ++i) {
+        printf("%02x ", (unsigned char) bytes[i]);
+        if (++j == 16) {
+            printf("\n%04d: ", ++count);
+            j = 0;
+        }
+        if (j % 4 == 0) {
+            printf("\t");
+        }
+    }
+    std::cout << std::endl;
+}
+
+// timeout version, returns NULL if the remote methods doesn't return any argument. Throws exception if we can't reach the server
+char *Request::doOperation(string &ip, int port, OperationId op_id, char *args, size_t arglen, time_t secs, long u_secs) {
+    Message m_request(MessageType::REQUEST, ack, op_id, arglen, args);
+    char *result = NULL, serialized[MSG_LEN], unserialized[MSG_LEN];
+    const int MAX_ATTEMPT = 7;
+    DatagramSocket s;
+    m_request.serialize(serialized);
+    DatagramPacket p_request(serialized, MSG_LEN, ip, port), p_response(unserialized, MSG_LEN);
+    
+    cout << "Starting to send a message: \n" << m_request << endl;
+    int n = -1, attempt = MAX_ATTEMPT;
+    while (n < 0 && --attempt >= 0) {
+        s.send(p_request);
+        cout << "Message sent: \n";
+        cout << m_request << endl;
+        cout << "Bytes sent: \n";
+        print_bytes(serialized, 0, 32);
+        n = s.receiveTimeout(p_response, secs, u_secs);
+        if (n > 0) {
+            cout << "\nMessage received: \n";
+            print_bytes(unserialized, 0, 32);
+        }
+    }
+    if (n < 0) 
+        throw std::string("The server is not available.\n");
+    Message m_response(unserialized, MSG_LEN);
+    ++ack;
+    if (m_response.argumentLength > 0) {
+        result = new char(m_response.argumentLength);
+        memcpy((char *) result, (char *) m_response.arguments, m_response.argumentLength);
+    }
+    return result;
+}
+
+char *Request::doOperation(OperationId op_id, char *args, size_t arglen, time_t secs, long u_secs) {
+    return doOperation(ip, port, op_id, args, arglen, secs, u_secs);  
+}
+ 
+// Request.h ------------------------------------------------------------------------------------------
+#ifndef REQUEST_H
+#define REQUEST_H
+
+#include "DatagramSocket.h"
+#include "Message.h"
+#include "ByteBuffer.h"
+#include <limits.h>
+
+
+class Request {
+public:
+    Request();
+    // ip, port
+    Request(string, int);
+
+    void setSoTimeout(long, long);
+
+    // ip, port, operationId, args
+    char *doOperation(string &, int, OperationId, char *, size_t);
+    // operationId, args
+    char *doOperation(OperationId, char *, size_t);
+    // ip, port, operationId, args, arglen, secs, usecs
+    char *doOperation(string &, int, OperationId, char *, size_t, time_t, long);
+    // operationId, args, arglen, secs, usecs
+    char *doOperation(OperationId, char *, size_t, time_t, long);
+private:
+    string ip = "127.0.0.1";
+    int port = 0, ack = 0;
+    long secs = 0, u_secs = 0;
+    bool timeout_set = false;
+
+    void send(Message &, DatagramSocket &);
+    int receive_ack(DatagramSocket &);
+
+};
+
+
+#endif

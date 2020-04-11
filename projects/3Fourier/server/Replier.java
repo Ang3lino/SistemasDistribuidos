@@ -26,7 +26,7 @@ public class Replier {
 
     public void printBytes(byte[] bytes, int from, int to) {
         int j = 0, lineCount = 0;
-        System.out.printf("\n%04d: ", ++lineCount);
+        System.out.printf("\n%04d:   ", ++lineCount);
         for (int i = from; i < to; ++i) {
             byte b = bytes[i];
             String st = String.format("%02X", b);
