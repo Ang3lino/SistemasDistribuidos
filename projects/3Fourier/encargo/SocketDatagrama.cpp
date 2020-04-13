@@ -1,16 +1,4 @@
 #include "SocketDatagrama.h"
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <stdio.h>
-#include <netdb.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <cstring>
-#include <unistd.h>
-#include <iostream>
 
 using namespace std;
 
@@ -50,8 +38,6 @@ int SocketDatagrama::envia(PaqueteDatagrama &p) {
 }
 
 int SocketDatagrama::recibeTimeout(PaqueteDatagrama &p, time_t segundos, suseconds_t microsegundos) {
-
-
     timeOut.tv_usec = microsegundos;
     timeOut.tv_sec = segundos;
     setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeOut, sizeof(timeOut));
@@ -65,12 +51,9 @@ int SocketDatagrama::recibeTimeout(PaqueteDatagrama &p, time_t segundos, susecon
     if (a < 0) {
         cout << "Tiempo de recepcion transcurrido \n";
         return -1;
-    } else {
-        cout << "Mensaje enviado corectamente ";
-        return a;
-    }
-
-
+    } 
+    cout << "Mensaje enviado corectamente ";
+    return a;
 }
 
 

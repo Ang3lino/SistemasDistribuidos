@@ -1,3 +1,4 @@
+
 #ifndef SOCKETDATAGRAMA_H
 #define SOCKETDATAGRAMA_H
 
@@ -9,28 +10,33 @@
 #include <netdb.h>
 #include <strings.h>
 #include <sys/time.h>
+
+#include <stdlib.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <cstring>
+#include <unistd.h>
+#include <iostream>
+
+
 class SocketDatagrama {
 public:
     SocketDatagrama(int);
 
     ~SocketDatagrama();
 
-//Recibe un paquete tipo datagrama proveniente de este socket
+    //Recibe un paquete tipo datagrama proveniente de este socket
     int recibe(PaqueteDatagrama &p);
 
-//Envía un paquete tipo datagrama desde este socket
+    //Envía un paquete tipo datagrama desde este socket
     int envia(PaqueteDatagrama &p);
 
-    int recibeTimeout(PaqueteDatagrama&, time_t , suseconds_t );
-
-
+    int recibeTimeout(PaqueteDatagrama&, time_t , suseconds_t);
 private:
     struct sockaddr_in direccionLocal;
     struct sockaddr_in direccionForanea;
     int s; //ID socket
     struct timeval timeOut;
-
-
 };
 
 #endif

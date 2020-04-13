@@ -1,6 +1,4 @@
 #include "PaqueteDatagrama.h"
-#include <string.h>
-#include <stdio.h>
 
 PaqueteDatagrama::PaqueteDatagrama(char* _datos, unsigned int _longitud, char* _ip, int _puerto) {
     datos = new char[_longitud];

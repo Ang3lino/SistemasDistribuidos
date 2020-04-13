@@ -9,50 +9,47 @@ Solicitud::Solicitud() {
 }
 
 void 
-init_mensaje(struct mensaje &msg, int msgType, int reqId, int opId) {
+init_mensaje(struct mensaje &msg, int msgType, int reqId, int opId, char *args, int arg_len) 
+{
     msg.messageType = msgType;
     msg.requestId = reqId;
     msg.operationId = opId;
+    msg.argumentLength = arg_len;
+    if (arg_len > 0) {
+        memcpy(msg.arguments, args, arg_len);
+    }
 }
 
 char *
-Solicitud::doOperation(char *IP, int puerto, int operationId, char *arguments) {  //Usuario cliente (puerto variable)
-    int enviado, recibido;
-    cout << "doOperation" << endl;
-    cout << arguments << endl;
-
+Solicitud::doOperation(char *IP, int puerto, int operationId, char *arguments) 
+{  
     struct mensaje msg;
-    init_mensaje(msg, 0, 0, operationId);
-    memcpy(msg.arguments, arguments, TAM_MAX_DATA);
+    int recibido = -1, enviado = -1;
+
+    // Inicializando la estructura
+    int arg_len = sizeof(int);
+    init_mensaje(msg, 0, 0, operationId, arguments, sizeof(int));
     PaqueteDatagrama p = PaqueteDatagrama((char *) &msg, sizeof(struct mensaje), IP, puerto);
-    cout << "Datos enviados" << endl;
-    cout << "IP: " << p.obtieneDireccion() << endl;
-    cout << "Puerto: " << p.obtienePuerto() << endl;
-    enviado = socketlocal->envia(p);
-    if (enviado == -1) {
-        perror("Fallo al enviar");
-    }
+
+    // empezando el intento de envio y recepcion
     PaqueteDatagrama pRes = PaqueteDatagrama(puerto);
-
-    recibido = socketlocal->recibeTimeout(pRes, 2, 500);
-    int contador = 1;
-
-    while (contador < 7 && recibido == -1) {
-        socketlocal->envia(p);
+    int contador = 0;
+    while (++contador <= 7 && recibido == -1) {
+        enviado = socketlocal->envia(p);  // returns -1 en caso de error
+        if (enviado == -1) {
+            puts("No se envio el mensaje adecuadamente (ya prendio el servidor?)");
+            continue;
+        }
         recibido = socketlocal->recibeTimeout(pRes, 2, 500);
         cout << "Intento número : " << contador << ' ';
-        contador++;
     }
-
-    if (contador == 7) {
+    if (contador > 7) {
         cout << "Fallo al enviar" << endl;
-        exit(0);
+        return NULL;
     } 
-    cout << "Datos recibidos" << endl;
-    cout << "IP: " << pRes.obtieneDireccion() << endl;
-    cout << "Puerto: " << pRes.obtienePuerto() << endl;
 
     struct mensaje *msgR = (struct mensaje *) pRes.obtieneDatos();
-
-    return (char *) msgR->arguments;
+    char *response = new char[sizeof(int)];
+    memcpy(response, msgR->arguments, sizeof(int));
+    return response;
 }
