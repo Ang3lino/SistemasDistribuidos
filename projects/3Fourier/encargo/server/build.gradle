@@ -1,0 +1,15 @@
+
+apply plugin: 'java'
+apply plugin: 'application'
+
+mainClassName = 'Plotter'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.github.sh0nk:matplotlib4j:0.4.0'
+    implementation 'org.knowm.xchart:xchart:3.6.2'
+}
+
