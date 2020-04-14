@@ -27,8 +27,7 @@ Solicitud::doOperation(char *IP, int puerto, int operationId, char *arguments)
     int recibido = -1, enviado = -1;
 
     // Inicializando la estructura
-    int arg_len = sizeof(int);
-    init_mensaje(msg, 0, 0, operationId, arguments, sizeof(int));
+    init_mensaje(msg, 0, 0, operationId, arguments, TAM_MAX_DATA);
     PaqueteDatagrama p = PaqueteDatagrama((char *) &msg, sizeof(struct mensaje), IP, puerto);
 
     // empezando el intento de envio y recepcion
@@ -49,7 +48,10 @@ Solicitud::doOperation(char *IP, int puerto, int operationId, char *arguments)
     } 
 
     struct mensaje *msgR = (struct mensaje *) pRes.obtieneDatos();
-    char *response = new char[sizeof(int)];
-    memcpy(response, msgR->arguments, sizeof(int));
-    return response;
+    if (msgR->argumentLength > 0) {
+        char *response = new char[sizeof(int)];
+        memcpy(response, msgR->arguments, sizeof(int));
+        return response;
+    }
+    return NULL;
 }

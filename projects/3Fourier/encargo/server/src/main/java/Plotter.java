@@ -1,12 +1,11 @@
 
-import java.io.IOException;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
-import com.github.sh0nk.matplotlib4j.NumpyUtils;
-import com.github.sh0nk.matplotlib4j.Plot;
-import com.github.sh0nk.matplotlib4j.PythonExecutionException;
+import org.knowm.xchart.QuickChart;
+import org.knowm.xchart.SwingWrapper;
+import org.knowm.xchart.XYChart;
+ 
+
 
 public class Plotter {
     static public void sleepMilliseconds(int ms) {
@@ -17,25 +16,57 @@ public class Plotter {
         }
     }
 
+  public static void main(String[] args) throws Exception {
+ 
+    // double phase = 0;
+    // double[][] initdata = getSineData(phase);
+ 
+    // // Create Chart
+    // final XYChart chart = QuickChart.getChart("Simple XChart Real-time Demo", "Radians", "Sine", "sine", initdata[0], initdata[1]);
+ 
+    // // Show it
+    // final SwingWrapper<XYChart> sw = new SwingWrapper<XYChart>(chart);
+    // sw.displayChart();
+ 
+    // while (true) {
+ 
+    //   phase += 2 * Math.PI * 2 / 20.0;
+ 
+    //   Thread.sleep(100);
+ 
+    //   final double[][] data = getSineData(phase);
+ 
+    //   chart.updateXYSeries("sine", data[0], data[1], null);
+    //   sw.repaintChart();
+    // }
 
-    public static void main(String args[]) throws IOException, PythonExecutionException  {
-        List<Double> x = NumpyUtils.linspace(-3, 3, 100);
-        // List<Double> y = x.stream().map(xi -> Math.sin(xi) + Math.random()).collect(Collectors.toList());
-        List<Double> y = x.stream().map(xi -> 2*xi ).collect(Collectors.toList());
-        Plot plt = Plot.create();
+    final int PUERTO = 7200; 
+    Contestador c = new Contestador(PUERTO);
+    final int cantidadMuestas = Const.TAM_MAX_DATA / 8;
+    double x[] = new double[cantidadMuestas], y[] = new double[cantidadMuestas];
+    byte[] solicitud = new byte[Const.TAM_MAX_MSG];
 
-        Thread closer = new Thread(() -> {
-            sleepMilliseconds(4000);
-            System.out.println("Hello");
-            plt.close();
-        });
+    solicitud = c.getRequest();
+    Contestador.messageFromBytes(solicitud, x);
+    c.notificar();
 
-        plt.plot().add(x, y).label("sin");
-        plt.title("scatter");
-        plt.legend().loc("upper right");
-        // plt.show();
-        plt.executeSilently();
-        System.out.println("holo");
+    solicitud = c.getRequest();
+    Contestador.messageFromBytes(solicitud, y);
+    c.notificar();
 
+    for (int i = 0; i < cantidadMuestas; ++i) {
+      System.out.println(x[i] + ", " + y[i]);
     }
+  }
+ 
+  private static double[][] getSineData(double phase) {
+    double[] xData = new double[100];
+    double[] yData = new double[100];
+    for (int i = 0; i < xData.length; i++) {
+      double radians = phase + (2 * Math.PI / xData.length * i);
+      xData[i] = radians;
+      yData[i] = Math.sin(radians);
+    }
+    return new double[][] { xData, yData };
+  }
 }

@@ -9,7 +9,6 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.sh0nk:matplotlib4j:0.4.0'
-    implementation 'org.knowm.xchart:xchart:3.6.2'
+    implementation group: 'org.knowm.xchart', name: 'xchart', version: '3.2.2'
 }
 
