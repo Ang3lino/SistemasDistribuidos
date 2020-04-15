@@ -5,6 +5,4 @@ public class Mensaje {
     public int operationId;
     public int argumentLength;
     public byte arguments[] = new byte[Const.TAM_MAX_DATA];
-
-    // public Mensaje() { }
 }

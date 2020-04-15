@@ -10,49 +10,30 @@ import java.nio.ByteOrder;
 public class Contestador {
     private DatagramSocket socket;
     private byte[] buf;
-    private int port;
-    InetAddress remoteAddress;
+    private int puerto;
+    InetAddress direccionForanea;
 
- 
     public Contestador (int puerto) {
         buf = new byte[Const.TAM_MAX_MSG];
-        port = puerto;
+        puerto = puerto;
         try {
-            socket = new DatagramSocket(port);
+            socket = new DatagramSocket(puerto);
         } catch (SocketException e) {
             System.out.println(e);
         }
     }
 
-    public void printBytes(byte[] bytes, int from, int to) {
-        int j = 0, lineCount = 0;
-        System.out.printf("\n%04d:   ", ++lineCount);
-        for (int i = from; i < to; ++i) {
-            byte b = bytes[i];
-            String st = String.format("%02X", b);
-            System.out.print(st + " ");
-            if (++j == 16) {
-                System.out.printf("\n%04d: ", ++lineCount);
-                j = 0;
-            }
-            if (j % 4 == 0) 
-                System.out.print("\t"); 
-        }
-        System.out.println();
-    }
-
     public byte[] getRequest() {
         DatagramPacket packet = new DatagramPacket(buf, buf.length);
-        System.out.println("Waiting for a request\n");
+        System.out.println("Esperando solicitud \n");
         try {
             socket.receive(packet);
         } catch (IOException e) {
             System.out.println(e);
         }
-        remoteAddress = packet.getAddress();
-        port = packet.getPort();
+        direccionForanea = packet.getAddress();
+        puerto = packet.getPort();
         byte[] data = packet.getData();
-        printBytes(data, 0, 32);
         return data;
     }
 
@@ -83,16 +64,18 @@ public class Contestador {
         return byteBuffer.array();
     }
 
+    /**
+     * Notifica al cliente que puede continuar con la siguiente suma.
+     * @return
+     */
     public boolean notificar() {
         Mensaje reply = new Mensaje();
         reply.messageType = 1;
         reply.argumentLength = 0;
         byte[] response = messageAsBytes(reply);
-        DatagramPacket pack = new DatagramPacket(response, response.length, remoteAddress, port);
+        DatagramPacket pack = new DatagramPacket(response, response.length, direccionForanea, puerto);
         try {
             socket.send(pack);
-            System.out.println("Reply sent: ");
-            printBytes(response, 0, 32);
             return true;
         } catch (IOException e) {
             System.out.println(e);
