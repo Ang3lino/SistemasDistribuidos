@@ -4,7 +4,8 @@
 
 using namespace std;
 
-Solicitud::Solicitud() {
+Solicitud::Solicitud() 
+{
     socketlocal = new SocketDatagrama(0);
 }
 
@@ -39,12 +40,11 @@ Solicitud::doOperation(char *IP, int puerto, int operationId, char *arguments)
             puts("No se envio el mensaje adecuadamente (ya prendio el servidor?)");
             continue;
         }
-        recibido = socketlocal->recibeTimeout(pRes, 2, 500);
-        cout << "Intento número : " << contador << ' ';
+        recibido = socketlocal->recibeTimeout(pRes, 10, 500);
     }
     if (contador > 7) {
+        throw string("El servidor no esta disponible\n");
         cout << "Fallo al enviar" << endl;
-        return NULL;
     } 
 
     struct mensaje *msgR = (struct mensaje *) pRes.obtieneDatos();

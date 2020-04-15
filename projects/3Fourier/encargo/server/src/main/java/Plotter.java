@@ -4,10 +4,15 @@ import java.util.concurrent.TimeUnit;
 import org.knowm.xchart.QuickChart;
 import org.knowm.xchart.SwingWrapper;
 import org.knowm.xchart.XYChart;
- 
+import org.knowm.xchart.XYSeries.XYSeriesRenderStyle;
+import org.knowm.xchart.style.Styler.LegendPosition;
+
 
 
 public class Plotter {
+    private static final int PUERTO = 7200; 
+    private static final int CANTIDAD_MUESTRAS = Const.TAM_MAX_DATA / 8;
+
     static public void sleepMilliseconds(int ms) {
         try {
             TimeUnit.MILLISECONDS.sleep(ms);
@@ -17,56 +22,38 @@ public class Plotter {
     }
 
   public static void main(String[] args) throws Exception {
- 
-    // double phase = 0;
-    // double[][] initdata = getSineData(phase);
- 
-    // // Create Chart
-    // final XYChart chart = QuickChart.getChart("Simple XChart Real-time Demo", "Radians", "Sine", "sine", initdata[0], initdata[1]);
- 
-    // // Show it
-    // final SwingWrapper<XYChart> sw = new SwingWrapper<XYChart>(chart);
-    // sw.displayChart();
- 
-    // while (true) {
- 
-    //   phase += 2 * Math.PI * 2 / 20.0;
- 
-    //   Thread.sleep(100);
- 
-    //   final double[][] data = getSineData(phase);
- 
-    //   chart.updateXYSeries("sine", data[0], data[1], null);
-    //   sw.repaintChart();
-    // }
-
-    final int PUERTO = 7200; 
     Contestador c = new Contestador(PUERTO);
-    final int cantidadMuestas = Const.TAM_MAX_DATA / 8;
-    double x[] = new double[cantidadMuestas], y[] = new double[cantidadMuestas];
-    byte[] solicitud = new byte[Const.TAM_MAX_MSG];
+    double x[] = new double[CANTIDAD_MUESTRAS], y[] = new double[CANTIDAD_MUESTRAS];
 
-    solicitud = c.getRequest();
-    Contestador.messageFromBytes(solicitud, x);
-    c.notificar();
+    // puntos iniciales
+    x = update(c, CANTIDAD_MUESTRAS); c.notificar();
+    y = update(c, CANTIDAD_MUESTRAS); c.notificar();
 
-    solicitud = c.getRequest();
-    Contestador.messageFromBytes(solicitud, y);
-    c.notificar();
+    // Create Chart
+    final XYChart chart = QuickChart.getChart("Titulo", "X", "Y", "f(x)", x, y);
 
-    for (int i = 0; i < cantidadMuestas; ++i) {
-      System.out.println(x[i] + ", " + y[i]);
+    // chart.getStyler().setDefaultSeriesRenderStyle(XYSeriesRenderStyle.Scatter);
+    // chart.getStyler().setChartTitleVisible(false);
+    // chart.getStyler().setLegendPosition(LegendPosition.InsideSW);
+    // chart.getStyler().setMarkerSize(16);
+ 
+    // Show it
+    final SwingWrapper<XYChart> sw = new SwingWrapper<XYChart>(chart);
+    sw.displayChart();
+ 
+    while (true) {
+      Thread.sleep(2500);
+      y = update(c, CANTIDAD_MUESTRAS);
+      chart.updateXYSeries("f(x)", x, y, null);
+      sw.repaintChart();
+      c.notificar();
     }
   }
- 
-  private static double[][] getSineData(double phase) {
-    double[] xData = new double[100];
-    double[] yData = new double[100];
-    for (int i = 0; i < xData.length; i++) {
-      double radians = phase + (2 * Math.PI / xData.length * i);
-      xData[i] = radians;
-      yData[i] = Math.sin(radians);
-    }
-    return new double[][] { xData, yData };
+
+  private static double[] update(Contestador c, int n) {
+    byte[] solicitud = c.getRequest();
+    double z[] = new double[n];
+    Contestador.messageFromBytes(solicitud, z);
+    return z;
   }
 }

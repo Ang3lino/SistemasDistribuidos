@@ -85,6 +85,7 @@ public class Contestador {
 
     public boolean notificar() {
         Mensaje reply = new Mensaje();
+        reply.messageType = 1;
         reply.argumentLength = 0;
         byte[] response = messageAsBytes(reply);
         DatagramPacket pack = new DatagramPacket(response, response.length, remoteAddress, port);
