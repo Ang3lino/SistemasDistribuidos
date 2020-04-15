@@ -4,49 +4,48 @@ import java.util.concurrent.TimeUnit;
 import org.knowm.xchart.QuickChart;
 import org.knowm.xchart.SwingWrapper;
 import org.knowm.xchart.XYChart;
+import org.knowm.xchart.XYChartBuilder;
 import org.knowm.xchart.XYSeries.XYSeriesRenderStyle;
 import org.knowm.xchart.style.Styler.LegendPosition;
 
 
 
 public class Plotter {
-    private static final int PUERTO = 7200; 
-    private static final int CANTIDAD_MUESTRAS = Const.TAM_MAX_DATA / 8;
-
-    static public void sleepMilliseconds(int ms) {
-        try {
-            TimeUnit.MILLISECONDS.sleep(ms);
-        } catch (InterruptedException e) {
-            System.out.println(e);
-        }
-    }
+  private static final int PUERTO = 7200; 
+  private static final int CANTIDAD_MUESTRAS = Const.TAM_MAX_DATA / 8;
 
   public static void main(String[] args) throws Exception {
     Contestador c = new Contestador(PUERTO);
-    double x[] = new double[CANTIDAD_MUESTRAS], y[] = new double[CANTIDAD_MUESTRAS];
+    final double x[] = update(c, CANTIDAD_MUESTRAS);
+    c.notificar();
 
-    // puntos iniciales
-    x = update(c, CANTIDAD_MUESTRAS); c.notificar();
-    y = update(c, CANTIDAD_MUESTRAS); c.notificar();
+    XYChart chart = new XYChartBuilder().width(700).height(600).title("Gaussian Blobs").xAxisTitle("X").yAxisTitle("Y").build();
 
-    // Create Chart
-    final XYChart chart = QuickChart.getChart("Titulo", "X", "Y", "f(x)", x, y);
+    chart.getStyler().setDefaultSeriesRenderStyle(XYSeriesRenderStyle.Scatter);
+    chart.getStyler().setChartTitleVisible(false);
+    chart.getStyler().setLegendPosition(LegendPosition.InsideSW);
+    chart.getStyler().setMarkerSize(4);
 
-    // chart.getStyler().setDefaultSeriesRenderStyle(XYSeriesRenderStyle.Scatter);
-    // chart.getStyler().setChartTitleVisible(false);
-    // chart.getStyler().setLegendPosition(LegendPosition.InsideSW);
-    // chart.getStyler().setMarkerSize(16);
+    chart.addSeries("f(x)", x, update(c, CANTIDAD_MUESTRAS));
+    c.notificar();
  
     // Show it
     final SwingWrapper<XYChart> sw = new SwingWrapper<XYChart>(chart);
     sw.displayChart();
  
     while (true) {
-      Thread.sleep(2500);
-      y = update(c, CANTIDAD_MUESTRAS);
-      chart.updateXYSeries("f(x)", x, y, null);
-      sw.repaintChart();
-      c.notificar();
+      Thread actualizador = new Thread(() -> {
+        chart.updateXYSeries("f(x)", x, update(c, CANTIDAD_MUESTRAS), null);
+      });
+      Thread borrador = new Thread(() -> {
+        sw.repaintChart();
+        c.notificar();
+      });
+      actualizador.start();
+      actualizador.join();
+      Thread.sleep(1000);
+      borrador.start();
+      borrador.join();
     }
   }
 
