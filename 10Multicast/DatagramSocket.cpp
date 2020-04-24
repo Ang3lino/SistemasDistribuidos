@@ -18,7 +18,15 @@ DatagramSocket::DatagramSocket(uint16_t iport, const std::string &addr): timeout
 	// s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	s = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	// bzero((char *)&localAddress, sizeof(localAddress));
-	memset((char *) &localAddress, 0, sizeof(localAddress));
+	// memset((char *) &localAddress, 0, sizeof(localAddress));
+	localAddress = {0};
+
+	// int reuse = 1; // reuse the port, test with multicast can be done in localhost
+	// if (setsockopt(s, SOL_SOCKET, SO_REUSEPORT, &reuse, sizeof(reuse)) == -1) {
+	// 	perror("Error al llamar a la función setsockopt\n");
+	// 	exit(1);
+	// } 
+
 	localAddress.sin_family = AF_INET;
 	localAddress.sin_addr.s_addr = inet_addr(addr.c_str());
 	localAddress.sin_port = htons(iport);

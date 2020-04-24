@@ -13,26 +13,26 @@ void initMulticast(struct ip_mreq &multicast, uint16_t iport, const char *multic
 	multicast.imr_interface.s_addr = htons(iport);
 }
 
+/** iport must be 0 if we are goint to receive data
+ */
 void MulticastSocket::joinGroup(uint16_t iport, const std::string &addr) {
 	// memset(&groupAddr, 0, sizeof(groupAddr));
-    groupAddr = {0};  // for C99 onwards
-	groupAddr.imr_multiaddr.s_addr = inet_addr(addr.c_str());
-	groupAddr.imr_interface.s_addr = htons(iport);
+    initMulticast(groupAddr, iport, addr.c_str());
     int ok = setsockopt(s, IPPROTO_IP, IP_ADD_MEMBERSHIP, (void *) &groupAddr, sizeof(groupAddr));
 	if (ok < 0) {
         cout << errno << endl;
-		throw std::string("Could not join group: ") + std::string(strerror(errno));
+		cerr << std::string("Cannot join group: ") + std::string(strerror(errno));
+        exit(1);
     }
 }
 
 void MulticastSocket::leaveGroup(uint16_t iport, const std::string &addr) {
-	// memset(&groupAddr, 0, sizeof(groupAddr));
-    groupAddr = {0}; 
-	groupAddr.imr_multiaddr.s_addr = inet_addr(addr.c_str());
-	groupAddr.imr_interface.s_addr = htons(iport);
+    initMulticast(groupAddr, iport, addr.c_str());
     int ok = setsockopt(s, IPPROTO_IP, IP_DROP_MEMBERSHIP, (void *) &groupAddr, sizeof(groupAddr)) ;
-	if (ok < 0)
-		throw std::string("Could not leave group") + std::string(strerror(errno));
+	if (ok < 0) {
+		cerr <<  std::string("Cannot leave group: ") + std::string(strerror(errno));
+        exit(1);
+    }
 }
 
 int MulticastSocket::send(DatagramPacket &p, uint8_t ttl) {

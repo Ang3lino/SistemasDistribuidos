@@ -28,3 +28,12 @@ void DatagramPacket::setData(char* buf, size_t len) {
 	data = buf;
 	setLength(len);
 }
+
+std::ostream& operator << (std::ostream &out, const DatagramPacket &p) {
+    out << "DatagramPacket: \n";
+    out << "\tport: " << p.port << "\n";
+    out << "\taddress: " << p.ip << "\n";
+    out << "\tlength: " << p.length << "\n";
+    return out; 
+}
+
