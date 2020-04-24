@@ -9,8 +9,12 @@ int main(int argc, char const *argv[]) {
 	string ipmulti;
 	char str[100];
 	int port, ttl;
-	printf("[%s] [MULTICAST] [PORT]\n", argv[0]);
-	cin >> ipmulti >> port;
+	if (argc != 3) {
+		printf("[%s] [MULTICAST] [PORT]\n", argv[0]);
+		exit(1);
+	} 
+	ipmulti = argv[1];
+	port = atoi(argv[2]);
 	try {
 		MulticastSocket ms(port);
 		ms.joinGroup(0, ipmulti);

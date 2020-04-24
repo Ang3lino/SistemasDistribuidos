@@ -11,16 +11,17 @@ using namespace std;
 class DatagramPacket {
 public:
     // data, len, ip, port
-    DatagramPacket(char* , size_t, const string &, uint16_t );
-    DatagramPacket(char* , size_t);
+    DatagramPacket(char *, size_t, const string &, uint16_t );
+    DatagramPacket(char *, size_t);
     DatagramPacket();
+
     string getAddress();
     char *getData();
     size_t getLength();
     uint16_t getPort();
 
     void setAddress(const string &);
-    void setData(char* , size_t);
+    void setData(char *, size_t);
     void setLength(size_t);
     void setPort(uint16_t);
 

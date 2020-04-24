@@ -1,11 +1,11 @@
 
 #include "DatagramPacket.h"
 
-DatagramPacket::DatagramPacket(char* buf, size_t len): port(0), ip("") {
+DatagramPacket::DatagramPacket(char *buf, size_t len): port(0), ip("") {
 	setData(buf, len);
 }
 
-DatagramPacket::DatagramPacket(char* buf, size_t len, const string & addr, uint16_t iport) {
+DatagramPacket::DatagramPacket(char *buf, size_t len, const string & addr, uint16_t iport) {
 	setData(buf, len);
 	setAddress(addr);
 	setPort(iport);
