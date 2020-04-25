@@ -57,12 +57,16 @@ double sampling(double x) {
 }
 
 // T = 64, A = 8, d = 32
-double fourier_coeff(double t, unsigned n) {
-    double p = (32 / (M_PI * n)) * sampling(M_PI * n / 2) - 1;
-    double q = sin((M_PI * n / 32) * t);
-    return p*q;
-}
+// double fourier_coeff(double t, unsigned n) {
+//     double p = (32 / (M_PI * n)) * sampling(M_PI * n / 2) - 1;
+//     double q = sin((M_PI * n / 32) * t);
+//     return p*q;
+// }
 
+// T = 64, A = 16, d = 32
+double fourier_coeff(double t, unsigned n) {
+    return (64 / M_PI) * sin((M_PI * t / 32)*(2*n - 1));
+}
 
 double fourier_sum(double t, unsigned n) {
     double acc = 0;
