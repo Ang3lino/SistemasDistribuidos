@@ -21,6 +21,7 @@ public:
   void leaveGroup(uint16_t iport, const std::string &addr);
 
   int send(DatagramPacket &p, uint8_t ttl);
+  int send_unicast(DatagramPacket &p);
 
   int receive(DatagramPacket &p);
   int receiveTimeout(DatagramPacket &p, time_t seconds, suseconds_t microseconds);

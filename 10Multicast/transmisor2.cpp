@@ -5,6 +5,7 @@
 
 using namespace std;
 
+
 void parse_args(int argc, char *argv[], string &multicast, int &port, int &ttl, int *msg) {
 	if (argc != 6) {
         printf("[%s] [MULTICAST] [PORT] [TTL] [int] [int]\n\n", argv[0]);
@@ -26,14 +27,16 @@ int main(int argc, char *argv[]) {
     parse_args(argc, argv, multicast, port, ttl, msg);   
 
     MulticastSocket msock;
-    DatagramPacket packet((char *) msg, 2 * sizeof(int), multicast, port);
-    msock.send(packet, ttl);
+    DatagramPacket pack((char *) msg, 2 * sizeof(int), multicast, port);
+    msock.send(pack, ttl);
 
-    cout << "Reciviendo suma \n";
-    int result;
-    DatagramPacket pack2((char *) &result, sizeof(int));
-    msock.receiveTimeout(pack2, 3, 0);
-    printf("%d \n", result);
+    for (int i = 0; i < 3; ++i) {
+        cout << "Reciviendo suma \n";
+        int result;
+        DatagramPacket pack2((char *) &result, sizeof(int));
+        msock.receiveTimeout(pack2, 3, 0);
+        printf("%d \n", result);
+    }
 
     return 0;
 }

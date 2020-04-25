@@ -13,7 +13,8 @@ static void initMulticast(struct ip_mreq &multicast, uint16_t iport, const char 
 	multicast.imr_interface.s_addr = htons(iport);
 }
 
-/** iport must be 0 if we are goint to receive data
+/** iport must be 0 if we are goint to receive data.
+ * addr must be between 224.0.0.0, 239.255.255.255
  */
 void MulticastSocket::joinGroup(uint16_t iport, const std::string &addr) {
     initMulticast(groupAddr, iport, addr.c_str());
@@ -36,6 +37,10 @@ void MulticastSocket::leaveGroup(uint16_t iport, const std::string &addr) {
 
 int MulticastSocket::send(DatagramPacket &p, uint8_t ttl) {
 	setsockopt(s, IPPROTO_IP, IP_MULTICAST_TTL, (void *) &ttl, sizeof(ttl));
+	return DatagramSocket::send(p);
+}
+
+int MulticastSocket::send_unicast(DatagramPacket &p) {
 	return DatagramSocket::send(p);
 }
 
