@@ -7,25 +7,23 @@ DatagramSocket::DatagramSocket(uint16_t iport): DatagramSocket(iport, "0.0.0.0")
 
 DatagramSocket::DatagramSocket(uint16_t iport, const std::string &addr): timeout_set(false) {
 	#ifdef _WIN32  // detect windows of 32 and 64 bits
-		WSAData wsaData;
-		WORD word = MAKEWORD(2, 2);
-		if (WSAStartup(word, &wsaData) != 0) {
-			std::cerr << "Server: WSAStartup failed with error: " << WSAGetLastError() << std::endl;
-			exit(1);
-		}
+	WSAData wsaData;
+	WORD word = MAKEWORD(2, 2);
+	if (WSAStartup(word, &wsaData) != 0) {
+		std::cerr << "Server: WSAStartup failed with error: " << WSAGetLastError() << std::endl;
+		exit(1);
+	}
 	#endif 
 
 	// s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	s = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	// bzero((char *)&localAddress, sizeof(localAddress));
-	// memset((char *) &localAddress, 0, sizeof(localAddress));
 	localAddress = {0};
 
-	// int reuse = 1; // reuse the port, test with multicast can be done in localhost
-	// if (setsockopt(s, SOL_SOCKET, SO_REUSEPORT, &reuse, sizeof(reuse)) == -1) {
-	// 	perror("Error al llamar a la función setsockopt\n");
-	// 	exit(1);
-	// } 
+	int reuse = 1; // reuse the port, test with multicast can be done in localhost
+	if (setsockopt(s, SOL_SOCKET, SO_REUSEPORT, &reuse, sizeof(reuse)) == -1) {
+		perror("Error al llamar a la función setsockopt\n");
+		exit(1);
+	} 
 
 	localAddress.sin_family = AF_INET;
 	localAddress.sin_addr.s_addr = inet_addr(addr.c_str());
@@ -40,11 +38,11 @@ DatagramSocket::~DatagramSocket() {
 
 void DatagramSocket::unbind() {
 	#ifdef __linux__
-		close(s);
-		s = 0;
+	close(s);
+	s = 0;
 	#else 
-		closesocket(s);
-		WSACleanup();
+	closesocket(s);
+	WSACleanup();
 	#endif
 }
 
@@ -105,39 +103,6 @@ int DatagramSocket::receiveTimeout(DatagramPacket &p, time_t secs, time_t u_secs
     p.setLength(n);
     return n;
 }
-
-// int DatagramSocket::receiveTimeout(DatagramPacket &p, time_t secs, time_t u_secs) {
-//     timeval timeout = { 
-//         .tv_sec = (long) secs, 
-//         .tv_usec = (long) u_secs };  
-//     fd_set fds;
-//     FD_ZERO(&fds);
-//     FD_SET(s, &fds);
-//     int nfds;
-//     #ifdef _WIN32
-//     nfds = 0;
-//     #else
-//     nfds = s + 1;
-//     #endif
-//     int sret = select(nfds, &fds, NULL, NULL, &timeout);
-//     if (sret <= 0) {
-//         if (sret == 0) 
-//             std::cout << "Timeout!" << std::endl;
-//         else
-//             std::cerr << "Error in select." << std::endl;
-//         return -1;
-//     }
-//     int len = sizeof(remoteAddress);
-//     int n = recvfrom(s, p.getData(), p.getLength(), 0, (struct sockaddr *) &remoteAddress, &len);
-//     if (n < 0) {  // deal with errors 
-//         std::cerr << "Error in recvfrom." << std::endl;
-//         return -1;
-//     }
-//     p.setPort(remoteAddress.sin_port);  
-//     p.setAddress(string(inet_ntoa(remoteAddress.sin_addr)));
-//     p.setLength(n);
-//     return n;
-// }
 
 int DatagramSocket::send(DatagramPacket &p) {
 	// bzero((char *)&remoteAddress, sizeof(remoteAddress));

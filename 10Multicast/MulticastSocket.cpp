@@ -7,7 +7,7 @@ MulticastSocket::MulticastSocket(uint16_t iport): DatagramSocket(iport) {}
 
 MulticastSocket::~MulticastSocket() {}
 
-void initMulticast(struct ip_mreq &multicast, uint16_t iport, const char *multicastIp) {
+static void initMulticast(struct ip_mreq &multicast, uint16_t iport, const char *multicastIp) {
     multicast = {0};  // for C99 onwards
 	multicast.imr_multiaddr.s_addr = inet_addr(multicastIp);
 	multicast.imr_interface.s_addr = htons(iport);
@@ -16,7 +16,6 @@ void initMulticast(struct ip_mreq &multicast, uint16_t iport, const char *multic
 /** iport must be 0 if we are goint to receive data
  */
 void MulticastSocket::joinGroup(uint16_t iport, const std::string &addr) {
-	// memset(&groupAddr, 0, sizeof(groupAddr));
     initMulticast(groupAddr, iport, addr.c_str());
     int ok = setsockopt(s, IPPROTO_IP, IP_ADD_MEMBERSHIP, (void *) &groupAddr, sizeof(groupAddr));
 	if (ok < 0) {
