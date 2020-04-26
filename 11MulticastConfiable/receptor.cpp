@@ -1,3 +1,7 @@
+
+// Author: Angel Manriquez
+
+
 #include <bits/stdc++.h>
 
 #include "MulticastSocket.h"
@@ -18,23 +22,22 @@ void parse_args(int argc, char const *argv[], string &multicast, int &port) {
 int main(int argc, char const *argv[]) {
 	int nbd = 0;
 	pack_t frame;
-	set<unsigned> hist;
+	set<unsigned> hist; // historial que guardara los id para idempotencia
 
 	string multicast_ip = "224.0.0.0";
 	int port = 7777;
 	// parse_args(argc, argv, multicast, port);
 
 	MulticastSocket msock(port);
-	msock.joinGroup(0, multicast_ip);
-
+	msock.joinGroup(0, multicast_ip); 
+	cout << "Esperando la primer solicitud" << endl;
 	while (true) {
 		DatagramPacket packet((char *) &frame, sizeof(frame));
-		cout << "Esperando solicitud... " << endl;
 		int receive_code = msock.receiveReliable(packet);
 		if (receive_code < 0) {
-			perror("No se pudo recibir la trama\n");
+			cerr << ("No se pudo recibir la trama\n");
 		} else {
-			if (hist.count(frame.id) == 0) {  // doesn't have
+			if (hist.count(frame.id) == 0) {  // el id no esta en el historial
 				hist.insert(frame.id);
 				nbd += frame.data[0];
 				cout << nbd << endl;
@@ -43,6 +46,5 @@ int main(int argc, char const *argv[]) {
 			}
 		}
 	}	
-
 	return 0;
 }

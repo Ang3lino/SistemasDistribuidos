@@ -7,7 +7,6 @@ MulticastSocket::MulticastSocket(uint16_t iport): DatagramSocket(iport) {}
 
 MulticastSocket::~MulticastSocket() {}
 
-
 // reliable methods
 int MulticastSocket::sendReliable(DatagramPacket &p, uint8_t ttl, int receptors) {
     int n_tries = 7;
@@ -23,7 +22,7 @@ int MulticastSocket::sendReliable(DatagramPacket &p, uint8_t ttl, int receptors)
             int response = 0;
             DatagramPacket pack((char *) &response, sizeof(response));
             int receive_code = DatagramSocket::receive(pack);
-            if (0 < receive_code && response)
+            if (0 < receive_code && response == 1)
                 ++successful_delivery;
             else 
                 break;
@@ -39,7 +38,7 @@ int MulticastSocket::receiveReliable(DatagramPacket &p) {
     DatagramSocket::setTimeout(secs, u_secs);
     int receive_code = DatagramSocket::receive(p);
     int send_code = 1;
-    DatagramPacket reply_pack((char *) &send_code, sizeof(send_code));
+    DatagramPacket reply_pack((char *) &send_code, sizeof(send_code), p.getAddress(), p.getPort());
     DatagramSocket::send(reply_pack);
     return receive_code;
 }
