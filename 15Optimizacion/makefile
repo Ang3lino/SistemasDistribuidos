@@ -4,7 +4,7 @@ all: client server
 client: client.o DatagramPacket.o DatagramSocket.o reg_util.o Request.o Message.o 
 	g++ -g -Wall client.o DatagramPacket.o DatagramSocket.o reg_util.o Request.o Message.o Trie.cpp -o client
 server: server.o DatagramPacket.o DatagramSocket.o reg_util.o Message.o Reply.o
-	g++ -g -Wall server.o DatagramPacket.o DatagramSocket.o reg_util.o Message.o Reply.o -o server
+	g++ -g -Wall server.o DatagramPacket.o DatagramSocket.o reg_util.o Message.o Trie.cpp Reply.o -o server
 
 DatagramPacket.o: ./lib/DatagramPacket.cpp
 	g++ -c -g -Wall ./lib/DatagramPacket.cpp

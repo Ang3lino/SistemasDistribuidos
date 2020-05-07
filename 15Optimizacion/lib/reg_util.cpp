@@ -80,6 +80,7 @@ vector<struct registro > get_random_registers(int n) {
 		strcpy(reg1.CURP, curp);
 		i = rand() % 9;
 		strcpy(reg1.partido, partidos[i]);
+		gettimeofday(&reg1.timestamp, NULL);
 		registros_vector[j] = reg1;
 	}
 	return registros_vector;

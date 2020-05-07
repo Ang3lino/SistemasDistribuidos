@@ -4,7 +4,6 @@
 #include "./lib/reg_util.h"
 #include "./lib/Request.h"
 
-#include "Trie.cpp"
 
 const int PORT = 5400;
 const string IP = "127.0.0.1";
@@ -21,39 +20,28 @@ int send_register(registro &r) {
     return ack;
 }
 
-void test(Trie &trie, string key) {
-    trie.put(key, true);
-    bool result = trie.get(key);
-    cout << result;
-    cout << endl;
-}
 
 int main(int argc, char const *argv[]) {
-    Trie trie;
+    int n = 15;
+    const char *fname = "client.txt";
+    int ack;
+    registro r;
 
-    test(trie, "she");
-    test(trie, "sells");
-    test(trie, "shells");
-    test(trie, "the");
-    test(trie, "sea");
-    test(trie, "shore");
+    if (argc == 2) n = atoi(argv[1]);
+    request.setSoTimeout(2, 0);
 
-    test(trie, "she");
-
-    string key = "hola";
-    bool result = trie.get(key);
-    cout << result;
-
-    key = "shit";
-    result = trie.get(key);
-    cout << result;
-
-    key = "shingeki";
-    result = trie.get(key);
-    cout << result;
-
-
-    cout << endl;
+    // get n random registers, save and read them from file
+    vector<registro > registers = get_random_registers(n);
+    alter_regs_in_file(fname, "w", registers);
+    registers = read_registers(fname, n);
+    
+    for (int vote_count = registers.size() - 1; vote_count >= 0; ) {
+        r = registers[vote_count];
+        ack = send_register(r);
+        // printf("ack: %d\n", ack);
+        // print_structure(&r, sizeof(r));
+        if (ack >= 0) --vote_count;
+    }
     return 0;
 }
 

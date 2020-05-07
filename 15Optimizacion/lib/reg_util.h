@@ -6,10 +6,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <sys/time.h>
 #include <unistd.h>
+
 #include <iostream> 
 #include <iterator> 
-
 #include <algorithm>    // std::random_shuffle
 #include <vector>       // std::vector
 #include <cstdlib>      // std::rand, std::srand
@@ -19,10 +20,11 @@
 
 using namespace std; 
 
-struct registro{
+struct registro {
 	char celular[11];
 	char CURP[19];
 	char partido[4];
+	struct timeval timestamp;
 };
 
 //Partidos disponibles 2018

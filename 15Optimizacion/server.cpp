@@ -5,6 +5,8 @@
 #include "./lib/Message.h"
 #include "./lib/Reply.h"
 
+#include "Trie.cpp"
+
 #include <set>
 
 const uint16_t PORT = 5400;
@@ -28,7 +30,7 @@ void receive_register(registro &r, bool &repeated) {
     delete msg;
 }
 
-int main(int argc, char const *argv[]) {
+void principal(int argc, char const *argv[]) {
     int n = 15;
     const char *fname = "server.txt";
     bool repeated = false;
@@ -45,7 +47,23 @@ int main(int argc, char const *argv[]) {
         }
         // printf("Registro %s\n\n", repeated ? "repetido": "nuevo");
     }
-    
+}
+
+void test(Trie<string> &trie, string key, string value) {
+    trie.put(key, value);
+    auto result = trie.get(key);
+    cout << result;
+    cout << endl;
+}
+
+int main(int argc, char const *argv[]) {
+    Trie<string> trie;
+    test(trie, "she", "she");
+    test(trie, "shell", "shell");
+    test(trie, "the", "or");
+    test(trie, "ohmygod", "jesus");
+
+    cout << endl;
     return 0;
 }
 
