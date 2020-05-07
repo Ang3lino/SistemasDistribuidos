@@ -31,7 +31,9 @@ int main(int argc, char const *argv[]) {
     request.setSoTimeout(2, 0);
 
     // get n random registers, save and read them from file
-    vector<registro > registers = get_random_registers(n);
+    vector<registro > registers;
+    
+    registers = get_random_registers(n);
     alter_regs_in_file(fname, "w", registers);
     registers = read_registers(fname, n);
     
