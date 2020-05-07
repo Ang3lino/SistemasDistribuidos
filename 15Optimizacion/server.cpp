@@ -59,7 +59,7 @@ void test(Trie<string> &trie, string key, string value) {
 Trie<struct timeval > trie;
 
 int main(int argc, char const *argv[]) {
-    int n = 10; 
+    int n = 10000; 
     const char *fname = "server.txt" ;
     auto registers = read_registers(fname, n);
     string cel;

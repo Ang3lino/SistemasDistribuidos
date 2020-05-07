@@ -65,22 +65,19 @@ struct Trie {
         __put(key, 0, value, root);
     }
 
-    Node *
-    __get_node(std::unique_ptr<Node > &self, std::string &key, unsigned i) 
-    {
+    Node * __get_node(u_ptr_node &self, std::string &key, unsigned i) {
         if (i >= key.size())
             return nullptr;  // index out of bounds
-        auto current_node = self.get();
-        for (auto &node_uptr: current_node->children) {
-            auto node = node_uptr.get(); 
-            if (node->character == key[i]) {
-                // std::cout << node->character;
-                if (i == key.size() - 1)
-                    return node;
-                return __get_node(node_uptr, key, i + 1);
-            }
-        }
-        return nullptr; // There is no such value 
+        auto &children = self.get()->children;
+        auto it = std::find_if(children.begin(), children.end(), 
+                [&] (auto &node_uptr) -> bool {
+                    return node_uptr.get()->character == key[i];
+        });
+        if (it == children.end())
+            return nullptr; // No such value
+        if (i == key.size() - 1)
+            return it->get();
+        return __get_node(*it, key, i + 1);
     }
 
     T get(std::string &key) {
