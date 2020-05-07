@@ -33,14 +33,14 @@ void receive_register(registro &r, bool &repeated) {
 void principal(int argc, char const *argv[]) {
     int n = 15;
     const char *fname = "server.txt";
-    bool repeated = false;
+    bool repeated_req = false;
     registro r;
 
     if (argc == 2) n = atoi(argv[1]);
     puts("Esperando registros...");
     for (int vote_count = n; vote_count; ) {
-        receive_register(r, repeated);
-        if (!repeated) {
+        receive_register(r, repeated_req);
+        if (!repeated_req) {
             // print_structure(&r, sizeof(r));
             alter_reg_in_file(fname, "a+", r);
             --vote_count;
@@ -56,14 +56,26 @@ void test(Trie<string> &trie, string key, string value) {
     cout << endl;
 }
 
-int main(int argc, char const *argv[]) {
-    Trie<string> trie;
-    test(trie, "she", "she");
-    test(trie, "shell", "shell");
-    test(trie, "the", "or");
-    test(trie, "ohmygod", "jesus");
+Trie<struct timeval > trie;
 
-    cout << endl;
+int main(int argc, char const *argv[]) {
+    int n = 10000; 
+    const char *fname = "server.txt" ;
+    auto registers = read_registers(fname, n);
+    string cel;
+    for (auto &r: registers) {
+        cel = string(r.celular);
+        trie.put(cel, r.timestamp);
+    }
+    struct timeval timestamp;
+    cout << "Inserciones correctas\n";
+    int i = 0;
+    for (auto &r: registers) {
+        cel = string(r.celular);
+        timestamp = trie.get(cel);
+        printf("%d: %ld %ld\n", i, timestamp.tv_sec, timestamp.tv_usec);
+        ++i;
+    }
     return 0;
 }
 

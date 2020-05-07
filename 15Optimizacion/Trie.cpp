@@ -67,7 +67,7 @@ struct Trie {
 
     T __get(std::unique_ptr<Node > &self, std::string &key, unsigned i) {
         if (i >= key.size())
-            throw "Index out of range";
+            throw "Trie::__get: Index out of range.\n";
         auto current_node = self.get();
         for (auto &node_uptr: current_node->children) {
             auto node = node_uptr.get(); 
@@ -78,7 +78,7 @@ struct Trie {
                 return __get(node_uptr, key, i + 1);
             }
         }
-        throw "There'is no such value";
+        throw "Trie::__get: There'is no such value.\n";
     }
 
     T get(std::string &key) {
