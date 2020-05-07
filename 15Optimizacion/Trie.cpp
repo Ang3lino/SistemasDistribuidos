@@ -65,24 +65,40 @@ struct Trie {
         __put(key, 0, value, root);
     }
 
-    T __get(std::unique_ptr<Node > &self, std::string &key, unsigned i) {
+    Node *
+    __get_node(std::unique_ptr<Node > &self, std::string &key, unsigned i) 
+    {
         if (i >= key.size())
-            throw "Trie::__get: Index out of range.\n";
+            return nullptr;  // index out of bounds
         auto current_node = self.get();
         for (auto &node_uptr: current_node->children) {
             auto node = node_uptr.get(); 
             if (node->character == key[i]) {
                 // std::cout << node->character;
                 if (i == key.size() - 1)
-                    return node->data;
-                return __get(node_uptr, key, i + 1);
+                    return node;
+                return __get_node(node_uptr, key, i + 1);
             }
         }
-        throw "Trie::__get: There'is no such value.\n";
+        return nullptr; // There is no such value 
     }
 
     T get(std::string &key) {
-        return __get(root, key, 0);
+        Node *node_ptr = __get_node(root, key, 0);
+        if (node_ptr == nullptr)
+            throw "Trie:get: There's no such value\n";
+        return node_ptr->data;
+    }
+
+    T get(std::string &key, T &default_value) {
+        Node *node_ptr = __get_node(root, key, 0);
+        if (node_ptr == nullptr)
+            return default_value;
+        return node_ptr->data;
+    }
+
+    bool has(std::string key) {
+        return __get_node(root, key, 0) != nullptr;
     }
 
 };

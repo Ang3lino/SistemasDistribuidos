@@ -59,7 +59,7 @@ void test(Trie<string> &trie, string key, string value) {
 Trie<struct timeval > trie;
 
 int main(int argc, char const *argv[]) {
-    int n = 10000; 
+    int n = 10; 
     const char *fname = "server.txt" ;
     auto registers = read_registers(fname, n);
     string cel;
@@ -67,15 +67,26 @@ int main(int argc, char const *argv[]) {
         cel = string(r.celular);
         trie.put(cel, r.timestamp);
     }
-    struct timeval timestamp;
     cout << "Inserciones correctas\n";
+
+
+    struct timeval timestamp;
     int i = 0;
     for (auto &r: registers) {
         cel = string(r.celular);
         timestamp = trie.get(cel);
-        printf("%d: %ld %ld\n", i, timestamp.tv_sec, timestamp.tv_usec);
+        printf("%d: %s -> %ld %ld\n", i, r.celular, timestamp.tv_sec, timestamp.tv_usec);
         ++i;
     }
+
+    cel = "5504299383";
+    bool has = trie.has(cel);
+    cout << has << endl;
+    timestamp = trie.get(cel);
+    printf("%d: %s -> %ld %ld\n", i, cel.c_str(), timestamp.tv_sec, timestamp.tv_usec);
+
+
+    cout << endl;
     return 0;
 }
 
