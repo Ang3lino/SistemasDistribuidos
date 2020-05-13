@@ -2,46 +2,41 @@
 #include <bits/stdc++.h>
 #include <string.h>
 
+#include "./lib/reg_util.h"
+
 using namespace std;
 
+bool cmp(const registro &r, const registro &s) {
+    cout << r.celular << endl;
+    cout << s.celular << endl;
+    return strcmp(r.celular, s.celular) < 0;
+}
 
-struct registro {
-	char celular[11];
-	char CURP[19];
-	char partido[4];
-	struct timeval timestamp;
-
-	bool operator<(const registro& r) {                           
-		for (int i = 0; i < 11; ++i) {
-			if (celular[i] < r.celular[i])
-				return true;
-		}
-		return false;
-	}
-
-	bool operator==(const registro& r) {                           
-		for (int i = 0; i < 11; ++i) {
-			if (celular[i] == r.celular[i])
-				return false;
-		}
-		return true;
-	}
-};
-
+void validate_regs(vector<registro > &regs) {
+    int j = 0;
+    char c;
+    for (auto &reg: regs) {
+        cout << reg.celular << endl;
+        int n = strlen(reg.celular);
+        for (int i = 0; i < n; ++i) {
+            c = reg.celular[i];
+            if (!isdigit(c)) {
+                cout << c << endl;
+                cout << j << endl;
+                throw "Aqui hay una inconsistencia";
+            }
+        }
+        ++j;
+    }
+}
 
 int main() {
-    vector <struct registro > registros;
-    registro r;
-
-    strcpy(r.celular, "12345678901");
-    registros.push_back(r);
-    strcpy(r.celular, "22345678901");
-    registros.push_back(r);
-    strcpy(r.celular, "32345678901");
-    registros.push_back(r);
-
-    sort(registros.begin(), registros.end());
+    int n = 10000;
+    vector <struct registro > registros = get_random_registers(n);
+    validate_regs(registros);
+    sort(registros.begin(), registros.end(), cmp);
     for (auto &r: registros)
         cout << r.celular << endl;
     return 0;
 }
+

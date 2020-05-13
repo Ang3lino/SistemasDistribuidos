@@ -87,17 +87,15 @@ parse_args (int argc, char const *argv[], int &n, SearchOption &option)
 } 
 
 bool reg_less_than(const registro &r, const registro &s) {
-    cout << "r -> " << r.celular << ", ";
-    cout << "s -> " << s.celular << "\t";
-    return strcmp(r.celular, s.celular);
+    return strcmp(r.celular, s.celular) < 0;
 }
 
 bool 
 reg_in_file(SearchOption option, const registro &r, 
         vector<registro > &registers) {
-    // if (option == SearchOption::LINEAR)
-    //     return find(
-    //         registers.begin(), registers.end(), r) != registers.end();
+    if (option == SearchOption::LINEAR)
+        return find(
+            registers.begin(), registers.end(), r) != registers.end();
     if (option == SearchOption::BINARY)
         return binary_search(
             registers.begin(), registers.end(), r, reg_less_than);

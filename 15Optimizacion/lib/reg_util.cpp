@@ -69,10 +69,9 @@ vector<registro > read_registers(const char *fname, const int n) {
 
 vector<struct registro > get_random_registers(int n) {
 	char telefono[11], curp[19], sexo;
-    vector<struct registro> registros_vector; 
-	struct registro reg1;
+    vector<registro> registros_vector; 
+	registro reg1;
 
-	registros_vector.resize(n);
 	// Genera un numeros telefonicos inicial de 9 digitos y despues se obtendran su secuenciales para evitar repeticion
 	int inicial = 500000000 + rand()%100000000;
 
@@ -89,7 +88,7 @@ vector<struct registro > get_random_registers(int n) {
 		i = rand() % 9;
 		strcpy(reg1.partido, partidos[i]);
 		gettimeofday(&reg1.timestamp, NULL);
-		registros_vector[j] = reg1;
+		registros_vector.push_back(reg1);
 	}
 	return registros_vector;
 }
