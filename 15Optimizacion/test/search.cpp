@@ -33,19 +33,19 @@ void search(vector<registro > &regs) {
     int i = std::experimental::randint(0, (int) regs.size() - 1);
     auto r = regs[i];
     // linear
-    auto it = find_if(regs.begin(), regs.end(), [&](auto &curr_r) { 
-            return strcmp(curr_r.celular, r.celular) == 0; });
+    auto it = find_if(regs.begin(), regs.end(),
+            bind(equals, std::placeholders::_1, r));
     if (it == regs.end()) {
         cerr << "Linear search didn't work.\n";
     } else {
-        cout << "[OK] Linear search.\n";
+        cout << "[OK] Linear search.\t";
     }
 
     // binary
-    if (!binary_search(regs.begin(), regs.end(), r, equals)) {
+    if (!binary_search(regs.begin(), regs.end(), r, less_than)) {
         cerr << "Binary search didn't work\n";
     } else {
-        cout << "[OK] Binary search\n";
+        cout << "[OK] Binary search\t";
     }
 
     // trie
@@ -58,8 +58,9 @@ void search(vector<registro > &regs) {
     if (!trie.has(string(r.celular))) {
         cerr << "Trie search didn't work\n";
     } else {
-        cout << "[OK] Trie search\n";
+        cout << "[OK] Trie search\t";
     }
+    cout << endl;
 }
 
 int main() {
@@ -67,7 +68,8 @@ int main() {
     vector <struct registro > registros = get_random_registers(n);
     validate_regs(registros);
     sort(registros.begin(), registros.end(), less_than);
-    search(registros);
+    for (int i = 0; i < 100; ++i)
+        search(registros);
     return 0;
 }
 

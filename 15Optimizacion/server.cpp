@@ -9,6 +9,7 @@
 
 #include <set>
 #include <algorithm>
+#include <functional>
 
 const uint16_t PORT = 5400;
 set<int> hist;
@@ -61,12 +62,7 @@ vector<registro > load_db(const char *fname, int n) {
         printf("No se encontro el archivo %s. \n", fname);
         return registers;
     }
-    #ifdef reg_repeated_not_allowed
     load_regs_in_trie(registers);
-    puts("No estan permitidos votos repetidos.");
-    #else
-    puts("Los votos repetidos estan permitidos.");
-    #endif
     return registers;
 }
 
@@ -86,19 +82,30 @@ parse_args (int argc, char const *argv[], int &n, SearchOption &option)
     return false;   
 } 
 
-bool reg_less_than(const registro &r, const registro &s) {
-    return strcmp(r.celular, s.celular) < 0;
+namespace reg {
+    bool less_than(const registro &r, const registro &s) {
+        return strcmp(r.celular, s.celular) < 0;
+    }
+
+    bool equals(const registro &r, const registro &s) {
+        return strcmp(r.celular, s.celular) == 0;
+    }
 }
+
 
 bool 
 reg_in_file(SearchOption option, const registro &r, 
         vector<registro > &registers) {
+    auto begin = registers.begin();
+    auto end = registers.end();
     if (option == SearchOption::LINEAR)
-        return find(
-            registers.begin(), registers.end(), r) != registers.end();
-    if (option == SearchOption::BINARY)
+        return find_if(
+            begin, end, bind(reg::equals, placeholders::_1, r)) != end;
+    if (option == SearchOption::BINARY) {
+        sort(registers.begin(), registers.end(), reg::less_than);
         return binary_search(
-            registers.begin(), registers.end(), r, reg_less_than);
+            registers.begin(), registers.end(), r, reg::less_than);
+    }
     return trie.has(string(r.celular)); 
 }
 
@@ -109,31 +116,25 @@ int main(int argc, char const *argv[]) {
     registro r;
     SearchOption option = SearchOption::BINARY;
     parse_args(argc, argv, n, option);
-    // vector<registro > registers = load_db(fname, n);
-    vector<registro > registers = get_random_registers(n);
+    vector<registro > registers = load_db(fname, n);
+    string cel;
 
-    for (auto &reg: registers)
-        cout << reg.celular << "\t";
-
-
-
-    if (option == SearchOption::BINARY) 
-        sort(registers.begin(), registers.end(), reg_less_than);
-
-    // FILE *fp = fopen(fname, "a+");
-    // puts("Esperando registros...");
-    // for (int vote_count = n; vote_count; ) {
-    //     receive_register(r, repeated_req);
-    //     if (!repeated_req) {  // avoid repeated requests
-    //         #ifdef reg_repeated_not_allowed
-    //         if (!reg_in_file(option, r, registers))  
-    //         #endif
-    //         alter_struct_in_file(fp, &r, sizeof(r));
-    //         --vote_count;
-    //     }
-    // }
-    // fclose(fp);
-    // cout << endl;
+    FILE *fp = fopen(fname, "a+");
+    puts("Esperando registros...");
+    for (int vote_count = n; vote_count; ) {
+        receive_register(r, repeated_req);
+        if (!repeated_req) {  // avoid repeated requests
+            if (!reg_in_file(option, r, registers))  {
+                alter_struct_in_file(fp, &r, sizeof(r));
+                cel = string(r.celular);
+                trie.put(cel, r.timestamp);
+                registers.push_back(r);
+            }
+            --vote_count;
+        }
+    }
+    fclose(fp);
+    cout << endl;
 
     return 0;
 }
