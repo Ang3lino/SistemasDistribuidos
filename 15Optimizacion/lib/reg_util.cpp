@@ -9,7 +9,10 @@ void print_structure(void *ptr, int size) {
 
 inline unique_ptr<FILE, int(*)(FILE*) > 
 fopen_smart(const char *fname, const char *mode) {
-	return unique_ptr<FILE, int(*)(FILE*) >(fopen(fname, mode), &fclose);
+	auto result = unique_ptr<FILE, int(*)(FILE*) >(fopen(fname, mode), &fclose);
+	if (result == NULL)
+		throw "Error at fopen_smart: fopen returned a NULL ptr";
+	return result;
 }
 
 inline int file_descriptor(FILE *fp) {
@@ -20,6 +23,11 @@ void
 alter_reg_in_file(const char *fname, const char *mode, registro &r) {
 	auto fp = fopen_smart(fname, mode);
 	fwrite (&r, sizeof(registro), 1, fp.get()); 
+}
+
+void 
+alter_struct_in_file(FILE *fp, void *struct_ptr, unsigned struct_len) {
+	fwrite(struct_ptr, struct_len, 1, fp); 
 }
 
 void 

@@ -38,6 +38,9 @@ void print_structure(void *ptr, int size);
 inline unique_ptr<FILE, int(*)(FILE*) > 
 fopen_smart(const char *fname, const char *mode) ;
 
+void 
+alter_struct_in_file(FILE *fp, void *struct_ptr, unsigned struct_len);
+
 inline int file_descriptor(FILE *fp) ;
 
 void save_registers(const char *fname, vector<struct registro > &registers) ;

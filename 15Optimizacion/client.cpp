@@ -22,11 +22,11 @@ int send_register(registro &r) {
 
 
 int main(int argc, char const *argv[]) {
-    int n = 15;
+    int n = 10000;
     const char *fname = "client.txt";
     int ack;
     registro r;
-
+    
     if (argc == 2) n = atoi(argv[1]);
     request.setSoTimeout(2, 0);
 
