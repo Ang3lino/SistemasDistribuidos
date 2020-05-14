@@ -44,6 +44,7 @@ int main(int argc, char const *argv[]) {
         // print_structure(&r, sizeof(r));
         if (ack >= 0) --vote_count;
     }
+
     return 0;
 }
 

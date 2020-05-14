@@ -16,8 +16,6 @@ set<int> hist;
 Reply reply(PORT);  // !!
 Trie<struct timeval > trie;
 
-// comendanto esta deficion se permitiran o no los votos repetidos
-#define reg_repeated_not_allowed 1
 enum SearchOption: int { LINEAR=0, BINARY, TRIE };
 
 
@@ -116,7 +114,8 @@ int main(int argc, char const *argv[]) {
     registro r;
     SearchOption option = SearchOption::BINARY;
     parse_args(argc, argv, n, option);
-    vector<registro > registers = load_db(fname, n);
+    vector<registro > registers;
+    registers = load_db(fname, n);
     string cel;
 
     FILE *fp = fopen(fname, "a+");
