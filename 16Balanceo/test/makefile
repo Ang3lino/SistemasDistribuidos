@@ -1,11 +1,14 @@
 
 all: db
 
-db: db.cpp sqlite3.o
-	g++ -g -Wall db.cpp sqlite3.o  -pthread -ldl 
+db: db.cpp sqlite3.o Trie.o
+	g++ -g -Wall db.cpp sqlite3.o Trie.o -pthread -ldl 
 
 sqlite3.o: ../lib/sqlite3.h
 	gcc -c ../lib/sqlite3.c -pthread -ldl
+
+Trie.o: ../Trie.cpp
+	g++ -c -g ../Trie.cpp
 
 
 emisor: emisor.o DatagramPacket.o DatagramSocket.o MulticastSocket.o reg_util.o Request.o Message.o 
