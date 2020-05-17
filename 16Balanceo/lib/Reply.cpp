@@ -4,6 +4,7 @@
 
 Reply::Reply(int port) {
     sock = new DatagramSocket(port);
+    last_ack = INT_MIN;
 }
 
 Message *Reply::getRequest(void) {
@@ -13,6 +14,14 @@ Message *Reply::getRequest(void) {
     addr = p.getAddress();
     port = p.getPort();
     msg = (Message *) p.getData();
+    return msg;
+}
+
+Message *Reply::processRequest(void) {
+    Message *msg = getRequest();
+    sendReply((char *) &last_ack, sizeof(unsigned), msg->operationId); 
+    if (last_ack == msg->ack)
+        return nullptr;
     return msg;
 }
 

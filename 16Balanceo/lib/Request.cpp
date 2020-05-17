@@ -54,6 +54,39 @@ Request:: doOperation(string &ip, int port, OperationId op_id, char *args, size_
     return nullptr;
 }
 
+int Request::doOperationMulticast
+        (OperationId operationId, char *args, size_t arglen, int receptors) 
+{
+    Message m_req(MessageType::REQUEST, operationId, args, arglen, ack);
+    Message m_res;
+    DatagramPacket p_req((char *) &m_req, MSG_LEN, ip, port);
+
+    MulticastSocket msock;
+    msock.setTimeout(secs, u_secs);
+
+    for (int n_tries = 7; n_tries; --n_tries) {
+        int send_code = msock.send(p_req, 3);  // (Packet, ttl)
+        if (send_code < 0) {
+            cerr << "Couldn't send";
+            continue;
+        }
+        int successful_delivery = 0;
+        for (int i = receptors; i; --i) {
+            DatagramPacket p_res((char *) &m_res, sizeof(Message));
+            int receive_code = msock.receive(p_res);
+            if (0 < receive_code && ack == m_res.ack) {
+                ++successful_delivery;
+            } else 
+                break;
+        }
+        if (successful_delivery == receptors) {
+            ++ack;
+            return 1;
+        }
+    }
+    return -1;
+}
+
 char *Request::doOperation(OperationId op_id, char *args, size_t arglen, time_t secs, long u_secs) {
     return doOperation(ip, port, op_id, args, arglen, secs, u_secs);  
 }

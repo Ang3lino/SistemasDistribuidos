@@ -22,6 +22,7 @@ public:
 
     int send(DatagramPacket &p, uint8_t ttl);
     int send_unicast(DatagramPacket &p);
+    void setTimeout(long secs, long u_secs);
 
     // reliable methods
     int sendReliable(DatagramPacket &p, uint8_t ttl, int receptors);

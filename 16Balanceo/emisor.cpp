@@ -1,17 +1,16 @@
 
 // Author: Angel Manriquez
-
 #include "./lib/MulticastSocket.h"
+#include "./lib/reg_util.h"
 #include "pack_t.h"
 
 #include <iostream> // std::cout, std::cerr
 #include <experimental/random> // std::experimental::randint
 
-
 using namespace std;
 
-
-int main(int argc, char const *argv[]) {
+int main(int argc, char const *argv[]) 
+{
     uint8_t ttl = 3;
     MulticastSocket msock;
     pack_t frame;
@@ -30,7 +29,7 @@ int main(int argc, char const *argv[]) {
     frame.msg_type = 0; // emision, recepcion. En esta practica no es relevante
     for (uint i = 0; i < deposits_amount; ++i) {
         frame.ack = i; // el campo ack puede ser obviado
-        frame.id = i;
+        frame.id  = i;
         frame.data[0] = experimental::randint(1, 9); // [a, b]
         DatagramPacket packet(
                 (char *) &frame, sizeof(frame), multicast_ip, port);
@@ -40,7 +39,22 @@ int main(int argc, char const *argv[]) {
             exit(EXIT_FAILURE);
         }
     }
+
     return 0;
 }
 
+    // frame.data_len = 4; // 4 bytes como datos a enviar
+    // frame.msg_type = 0; // emision, recepcion. En esta practica no es relevante
+    // for (uint i = 0; i < deposits_amount; ++i) {
+    //     frame.ack = i; // el campo ack puede ser obviado
+    //     frame.id  = i;
+    //     frame.data[0] = experimental::randint(1, 9); // [a, b]
+    //     DatagramPacket packet(
+    //             (char *) &frame, sizeof(frame), multicast_ip, port);
+    //     int send_code = msock.sendReliable(packet, ttl, receptors);
+    //     if (send_code < 0) {
+    //         cerr << "Ha ocurrido un error al enviar los datos \n";
+    //         exit(EXIT_FAILURE);
+    //     }
+    // }
 

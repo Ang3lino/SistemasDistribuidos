@@ -16,10 +16,13 @@ struct Message {
     OperationId operationId; //Identificador del mensaje
     int argumentLength;
     char arguments[ARG_LEN]; 
+    unsigned ack;
+
     // char *arguments;
     void serialize(char *);
 
     Message(MessageType , int , OperationId , int , char *);
+    Message(MessageType type, OperationId opid, char *args, size_t size, unsigned ack_);
     Message(char *, unsigned);
     Message();
 

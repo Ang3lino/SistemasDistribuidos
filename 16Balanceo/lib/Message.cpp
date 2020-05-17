@@ -5,12 +5,23 @@ Message::Message(MessageType type, int requestid, OperationId opid, int argument
         messageType(type),  
         requestId(requestid),
         operationId(opid), 
-        argumentLength(argument_length) {
+        argumentLength(argument_length),
+        ack(0) {
     // arguments = new char(argument_length);
     if (args != NULL)
         memcpy(arguments, args, argument_length);
 }
 
+Message::Message(MessageType type, OperationId opid, char *args, size_t size, unsigned ack_):
+        messageType(type),  
+        requestId(0),
+        operationId(opid), 
+        argumentLength(size),
+        ack(ack_) {
+    // arguments = new char(argument_length);
+    if (args != NULL)
+        memcpy(arguments, args, size);
+}
 
 Message::Message() { }
 

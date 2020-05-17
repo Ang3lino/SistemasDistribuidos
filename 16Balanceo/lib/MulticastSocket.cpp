@@ -7,6 +7,10 @@ MulticastSocket::MulticastSocket(uint16_t iport): DatagramSocket(iport) {}
 
 MulticastSocket::~MulticastSocket() {}
 
+void MulticastSocket::setTimeout(long secs, long u_secs) {
+    DatagramSocket::setTimeout(secs, u_secs);
+}
+
 // reliable methods
 int MulticastSocket::sendReliable(DatagramPacket &p, uint8_t ttl, int receptors) {
     int n_tries = 7;
@@ -73,10 +77,6 @@ void MulticastSocket::leaveGroup(uint16_t iport, const std::string &addr) {
 
 int MulticastSocket::send(DatagramPacket &p, uint8_t ttl) {
 	setsockopt(s, IPPROTO_IP, IP_MULTICAST_TTL, (void *) &ttl, sizeof(ttl));
-	return DatagramSocket::send(p);
-}
-
-int MulticastSocket::send_unicast(DatagramPacket &p) {
 	return DatagramSocket::send(p);
 }
 
