@@ -9,15 +9,16 @@
 
 using namespace std;
 
+
 int main(int argc, char const *argv[]) 
 {
     MulticastSocket msock;
     string multicast_ip = "224.0.0.0";
     int port = 7777;
     Request request(multicast_ip, port);
-    int n = 100;
+    int n = 1000;
     // Parametros posibles a modificar por la linea de comandos
-    int receptors = 2;
+    int receptors = 3;
     if (argc == 3) {
         n = atoi(argv[1]);
         receptors = atoi(argv[2]);
@@ -29,7 +30,6 @@ int main(int argc, char const *argv[])
         int status = request.doOperationMulticast( 
                 OperationId::SEND_REG_OP, 
                 (char *) &reg, sizeof(registro), receptors);
-        cout << status << endl;
     }
 
     return 0;
