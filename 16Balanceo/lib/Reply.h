@@ -2,15 +2,18 @@
 #define __REPLY_H__
 
 #include "DatagramSocket.h"
+#include "MulticastSocket.h"
 #include "Message.h"
 #include <limits.h>
 
 class Reply{
 public:
-    Reply(int);  // port
+    Reply(); // Multicast
+    Reply(int port);  // port
     Message *getRequest(void);
+    Message *getRequestMulticast(MulticastSocket &ms);
     void sendReply(char *reply, size_t arglen, OperationId operation) ;
-    Message *processRequest(void) ;
+    Message *processRequest(MulticastSocket &msock);
 private:
     DatagramSocket *sock;
     string addr;

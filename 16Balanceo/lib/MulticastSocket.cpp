@@ -4,7 +4,6 @@
 MulticastSocket::MulticastSocket(): DatagramSocket() {}
 
 MulticastSocket::MulticastSocket(uint16_t iport): DatagramSocket(iport) {}
-
 MulticastSocket::~MulticastSocket() {}
 
 void MulticastSocket::setTimeout(long secs, long u_secs) {

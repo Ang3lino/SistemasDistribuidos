@@ -4,6 +4,9 @@
 
 Reply::Reply(int port) {
     sock = new DatagramSocket(port);
+}
+
+Reply::Reply() {
     last_ack = INT_MIN;
 }
 
@@ -17,11 +20,30 @@ Message *Reply::getRequest(void) {
     return msg;
 }
 
-Message *Reply::processRequest(void) {
-    Message *msg = getRequest();
-    sendReply((char *) &last_ack, sizeof(unsigned), msg->operationId); 
+Message *Reply::getRequestMulticast(MulticastSocket &ms) {
+    Message *msg = new Message();
+    DatagramPacket p((char *) msg, sizeof(Message));
+    int code = ms.receiveReliable(p);
+    if (code < 0) {
+        cerr << "Could not receive anything\n";
+        return nullptr;
+    }
+    addr = p.getAddress();
+    port = p.getPort();
+    msg = (Message *) p.getData();
+    return msg;
+}
+
+Message *Reply::processRequest(MulticastSocket &msock) {
+    Message *msg = getRequestMulticast(msock);
     if (last_ack == msg->ack)
         return nullptr;
+    last_ack = msg->ack;
+
+    // send response
+    Message m_res(MessageType::REPLY, msg->operationId, (char *) &last_ack, sizeof(unsigned), last_ack);
+    DatagramPacket response((char *) &m_res, sizeof(Message), addr, port);
+    sock->send(response);
     return msg;
 }
 

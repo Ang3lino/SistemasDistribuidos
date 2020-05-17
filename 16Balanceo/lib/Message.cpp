@@ -42,6 +42,7 @@ std::ostream& operator << (std::ostream &out, const Message &msg) {
     out << " messageType: " << msg.messageType << ", ";
     out << " requestId: " << msg.requestId << ", ";
     out << " operationId: " << msg.operationId << ", ";
+    out << " ack: " << msg.ack << ", ";
     out << " sizeof(args): " << msg.argumentLength << "\n";
     // out << " args" << msg.arguments << "\n";
     return out; 

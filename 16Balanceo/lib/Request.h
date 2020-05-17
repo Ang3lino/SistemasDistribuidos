@@ -13,7 +13,7 @@ class Request {
 public:
     Request();
     // ip, port
-    Request(string, int);
+    Request(string ip, int port);
 
     void setSoTimeout(long, long);
 

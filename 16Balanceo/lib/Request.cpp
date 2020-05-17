@@ -58,7 +58,7 @@ int Request::doOperationMulticast
         (OperationId operationId, char *args, size_t arglen, int receptors) 
 {
     Message m_req(MessageType::REQUEST, operationId, args, arglen, ack);
-    Message m_res;
+    Message m_res(MessageType::REPLY, operationId, args, arglen, ack);
     DatagramPacket p_req((char *) &m_req, MSG_LEN, ip, port);
 
     MulticastSocket msock;
@@ -74,6 +74,7 @@ int Request::doOperationMulticast
         for (int i = receptors; i; --i) {
             DatagramPacket p_res((char *) &m_res, sizeof(Message));
             int receive_code = msock.receive(p_res);
+            cout << m_res << n_tries << endl;
             if (0 < receive_code && ack == m_res.ack) {
                 ++successful_delivery;
             } else 
