@@ -23,7 +23,7 @@ Message *Reply::getRequest(void) {
 Message *Reply::getRequestMulticast(MulticastSocket &ms) {
     Message *msg = new Message();
     DatagramPacket p((char *) msg, sizeof(Message));
-    int code = ms.receiveReliable(p);
+    int code = ms.receive(p);
     if (code < 0) {
         cerr << "Could not receive anything\n";
         return nullptr;
@@ -43,7 +43,7 @@ Message *Reply::processRequest(MulticastSocket &msock) {
     // send response
     Message m_res(MessageType::REPLY, msg->operationId, (char *) &last_ack, sizeof(unsigned), last_ack);
     DatagramPacket response((char *) &m_res, sizeof(Message), addr, port);
-    sock->send(response);
+    msock.send(response);
     return msg;
 }
 

@@ -79,6 +79,10 @@ int MulticastSocket::send(DatagramPacket &p, uint8_t ttl) {
 	return DatagramSocket::send(p);
 }
 
+int MulticastSocket::send(DatagramPacket &p) {
+	return DatagramSocket::send(p);
+}
+
 int MulticastSocket::receive(DatagramPacket &p) { 
     return DatagramSocket::receive(p); 
 }

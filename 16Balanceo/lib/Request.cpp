@@ -74,7 +74,7 @@ int Request::doOperationMulticast
         for (int i = receptors; i; --i) {
             DatagramPacket p_res((char *) &m_res, sizeof(Message));
             int receive_code = msock.receive(p_res);
-            cout << m_res << n_tries << endl;
+            cout << m_res << endl;
             if (0 < receive_code && ack == m_res.ack) {
                 ++successful_delivery;
             } else 

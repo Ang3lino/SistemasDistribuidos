@@ -6,7 +6,6 @@
 
 #include "./lib/MulticastSocket.h"
 #include "./lib/Reply.h"
-#include "./lib/reg_util.h"
 #include "pack_t.h"
 
 using namespace std;
@@ -22,7 +21,9 @@ void parse_args(int argc, char const *argv[], string &multicast, int &port) {
 }
 
 int main(int argc, char const *argv[]) {
+	int nbd = 0;
 	Reply replier;
+
 	string multicast_ip = "224.0.0.0";
 	int port = 7777;
 	// parse_args(argc, argv, multicast, port);
@@ -35,9 +36,11 @@ int main(int argc, char const *argv[]) {
 		if (msg == nullptr) {
 			cout << "Solicitud repetida.\n";
 		} else {
-			struct registro reg = *(registro *) msg->arguments;	
-			print_structure(&reg, sizeof(registro));
+			int x = *(int *) msg->arguments;	
+			nbd += x;
+			cout << "Recibido: " << x << endl;
 			cout << *msg << endl;
+			cout << nbd << endl;
 		}
 	}	
 
