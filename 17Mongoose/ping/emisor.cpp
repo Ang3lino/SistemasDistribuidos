@@ -1,17 +1,24 @@
 
-// Author: Angel Manriquez
 #include "./lib/MulticastSocket.h"
-#include "./lib/reg_util.h"
 #include "./lib/Request.h"
+#include "./lib/reg_util.h"
 
 #include <iostream> // std::cout, std::cerr
 #include <experimental/random> // std::experimental::randint
 
 using namespace std;
 
-vector<pair<string, int64_t > > ping(MulticastSocket msock, string multicast_ip, int receptors) {
-    vector<pair<string, int64_t > > res;
-    return res;
+vector<pair<string, int64_t > > 
+ping(MulticastSocket msock, string multicast_ip, int receptors) 
+{
+    int port = 7777; 
+    Request request(multicast_ip, port);
+    int _;
+    auto response_multicast = request.doOperationMulticast( 
+            OperationId::PING, (char *) &_, sizeof(int), receptors);
+    response_multicast = request.doOperationMulticast( 
+            OperationId::PING, (char *) &_, sizeof(int), receptors);
+    return response_multicast;
 }
 
 int main(int argc, char const *argv[]) 

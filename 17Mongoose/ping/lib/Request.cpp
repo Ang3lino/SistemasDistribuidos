@@ -74,12 +74,12 @@ vector<pair<string, int64_t > > Request::doOperationMulticast
         vector<pair<string, int64_t > > result;
         for (int i = receptors; i; --i) {
             DatagramPacket p_res((char *) &m_res, sizeof(Message));
-            auto start = high_resolution_clock::now(); 
+            auto start = high_resolution_clock::now(); // time measure
             int receive_code = msock.receive(p_res);
             // cout << m_res << endl;
             if (0 < receive_code && ack == m_res.ack) {
                 int64_t duration = duration_cast<microseconds>(high_resolution_clock::now() - start).count(); 
-                result.push_back(make_pair(p_res.getAddress(), duration));
+                result.push_back(make_pair(p_res.getAddress(), duration)); // store time and remote addr
                 ++successful_delivery;
             } else 
                 break;
