@@ -9,6 +9,10 @@
 
 using namespace std;
 
+vector<pair<string, int64_t > > ping(MulticastSocket msock, string multicast_ip, int receptors) {
+    vector<pair<string, int64_t > > res;
+    return res;
+}
 
 int main(int argc, char const *argv[]) 
 {
@@ -23,8 +27,10 @@ int main(int argc, char const *argv[])
         receptors = atoi(argv[1]);
     }
 
-    auto response_multicast = request.doOperationMulticast( OperationId::PING, 
-            (char *) &_, sizeof(int), receptors);
+    auto response_multicast = request.doOperationMulticast( 
+            OperationId::PING, (char *) &_, sizeof(int), receptors);
+    response_multicast = request.doOperationMulticast( 
+            OperationId::PING, (char *) &_, sizeof(int), receptors);
     for (auto &res: response_multicast) {
         printf("IP: %s Time(ms): %ld\n", res.first.c_str(), res.second);
     }

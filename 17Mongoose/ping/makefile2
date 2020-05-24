@@ -1,5 +1,5 @@
 
-all: init emisor receptor
+all: emisor receptor
 
 emisor: emisor.o DatagramPacket.o DatagramSocket.o MulticastSocket.o reg_util.o Request.o Message.o 
 	g++ -g -Wall emisor.o DatagramPacket.o DatagramSocket.o reg_util.o MulticastSocket.o Request.o Message.o -o emisor

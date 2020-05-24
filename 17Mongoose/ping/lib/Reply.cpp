@@ -44,7 +44,6 @@ Message *Reply::processRequest(MulticastSocket &msock) {
     Message m_res(MessageType::REPLY, msg->operationId, (char *) &last_ack, sizeof(unsigned), last_ack);
     DatagramPacket response((char *) &m_res, sizeof(Message), addr, port);
     msock.send(response);
-    last_ack = INT_MIN;  // for this specific case it'll work, warning
     return msg;
 }
 
