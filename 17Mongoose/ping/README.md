@@ -8,10 +8,11 @@ run twice
 
 run once
 
-    ./emisor 
+    ./webserver 
 
 go to view folder and run 
 
+    npm install
     npm start
 
 open a browser and type localhost:8000
