@@ -120,7 +120,7 @@ public class Server extends Application {
         while (true) {
             final ArrayList<XYChart.Data<Number, Number>> finalPoints = points;
             Thread remove = new Thread(() -> {
-                sleepMilliseconds(2500);
+                sleepMilliseconds(4000);
                 removePoints(holder, finalPoints);
             });
             remove.start();
